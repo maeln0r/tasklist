@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: maelnor
+      changes:
+        - createTable:
+            tableName: tasks
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: completed
+                  type: boolean
+  - include:
+      file: db/changelog/2024/10/16-01-changelog.yaml

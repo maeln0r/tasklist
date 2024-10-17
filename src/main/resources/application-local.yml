@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tasks
+    username: user
+    password: password
+  thymeleaf:
+    cache: false
+  liquibase:
+    enabled: true
+  jpa:
+    generate-ddl: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: task-list-group
+server:
+  port: 8083
+  error:
+    include-stacktrace: always
+    include-exception: true
+    include-message: always
+
+logging:
+  level:
+    root: debug
+    org.springframework.cache: TRACE
+
+springdoc:
+  api-docs:
+    path: /custom-api-docs
+  swagger-ui:
+    path: /custom-swagger-ui
+repository:
+  type: jpa

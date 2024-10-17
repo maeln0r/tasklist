@@ -1,0 +1,13 @@
+spring:
+  profiles:
+    active: dev # По умолчанию активный профиль - dev
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+  freemarker:
+    template-loader-path: classpath:/templates/
+    suffix: .ftl
+    cache: false
+    charset: UTF-8
+    content-type: text/html

@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/tasklist_prod
+    username: prod_user
+    password: prod_password
+  thymeleaf:
+    cache: true
+  liquibase:
+    enabled: false
+server:
+  port: 8083
+
+logging:
+  level:
+    root: INFO

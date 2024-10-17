@@ -1,0 +1,42 @@
+spring:
+  data:
+    redis:
+      host: redis
+      port: 6379
+  datasource:
+    url: jdbc:postgresql://db:5432/tasklist_dev
+    username: dev_user
+    password: dev_password
+  thymeleaf:
+    cache: false
+  liquibase:
+    enabled: true
+  jpa:
+    generate-ddl: true
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: task-list-group
+server:
+  port: 8083
+  error:
+    include-stacktrace: always
+    include-exception: true
+    include-message: always
+
+logging:
+  level:
+    root: DEBUG
+
+springdoc:
+  api-docs:
+    path: /custom-api-docs
+  swagger-ui:
+    path: /custom-swagger-ui
+repository:
+  type: jpa
+app:
+  jwt:
+    secret: "taskSecretKey"
+    tokenExpiration: 3m
+    refreshTokenExpiration: 30m
