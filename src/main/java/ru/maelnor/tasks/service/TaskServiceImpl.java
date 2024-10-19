@@ -15,6 +15,7 @@ import ru.maelnor.tasks.service.kafka.TaskProducer;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @ConditionalOnProperty(name = "repository.type", havingValue = "jdbc", matchIfMissing = true)
@@ -55,7 +56,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional
-    public void deleteTask(Long id) {
+    public void deleteTask(UUID id) {
         TaskEntity taskEntity = taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException(id));
         TaskDto taskDto = taskMapper.toDto(taskEntity);
@@ -64,7 +65,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Optional<TaskModel> getTaskById(Long id) {
+    public Optional<TaskModel> getTaskById(UUID id) {
         return taskRepository.findById(id)
                 .map(taskMapper::toModel);
     }

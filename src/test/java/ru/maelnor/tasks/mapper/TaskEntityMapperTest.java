@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import ru.maelnor.tasks.dto.TaskDto;
 import ru.maelnor.tasks.entity.TaskEntity;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -13,7 +15,7 @@ public class TaskEntityMapperTest {
     void shouldMapTaskToTaskDto() {
         // Arrange
         TaskEntity taskEntity = new TaskEntity();
-        taskEntity.setId(1L);
+        taskEntity.setId(UUID.randomUUID());
         taskEntity.setName("Test Task");
         taskEntity.setCompleted(true);
 
@@ -31,7 +33,7 @@ public class TaskEntityMapperTest {
     void shouldMapTaskDtoToTask() {
         // Arrange
         TaskDto taskDto = new TaskDto();
-        taskDto.setId(1L);
+        taskDto.setId(UUID.randomUUID());
         taskDto.setName("Test Task");
         taskDto.setCompleted(true);
 

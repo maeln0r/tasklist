@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.Indexed;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @RedisHash("refresh_token")
 @Getter
@@ -18,7 +19,7 @@ public class RefreshTokenEntity {
     @Indexed
     private Long id;
     @Indexed
-    private Long userId;
+    private UUID userId;
     @Indexed
     private String refreshToken;
     @Indexed

@@ -14,6 +14,7 @@ import ru.maelnor.tasks.repository.TaskRepository;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,16 +31,18 @@ public class TaskEntityServiceImplTest {
 
     private TaskEntity taskEntity;
     private TaskDto taskDto;
+    private UUID taskId;
 
     @BeforeEach
     void setUp() {
+        taskId = UUID.randomUUID();
         taskEntity = new TaskEntity();
-        taskEntity.setId(1L);
+        taskEntity.setId(taskId);
         taskEntity.setName("Test Task");
         taskEntity.setCompleted(false);
 
         taskDto = new TaskDto();
-        taskDto.setId(1L);
+        taskDto.setId(taskId);
         taskDto.setName("Test Task");
         taskDto.setCompleted(false);
     }
@@ -79,31 +82,31 @@ public class TaskEntityServiceImplTest {
 
     @Test
     void shouldDeleteTask() {
-        taskService.deleteTask(1L);
+        taskService.deleteTask(taskId);
 
-        verify(taskRepository, times(1)).delete(1L);
+        verify(taskRepository, times(1)).delete(taskId);
     }
 
     @Test
     void shouldReturnTaskById() {
-        when(taskRepository.findById(1L)).thenReturn(Optional.of(taskEntity));
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(taskEntity));
 
-        Optional<TaskModel> foundTask = taskService.getTaskById(1L);
+        Optional<TaskModel> foundTask = taskService.getTaskById(taskId);
 
         assertTrue(foundTask.isPresent());
         assertEquals("Test Task", foundTask.get().getName());
 
-        verify(taskRepository, times(1)).findById(1L);
+        verify(taskRepository, times(1)).findById(taskId);
     }
 
     @Test
     void shouldReturnEmptyOptionalWhenTaskNotFound() {
-        when(taskRepository.findById(1L)).thenReturn(Optional.empty());
+        when(taskRepository.findById(taskId)).thenReturn(Optional.empty());
 
-        Optional<TaskModel> foundTask = taskService.getTaskById(1L);
+        Optional<TaskModel> foundTask = taskService.getTaskById(taskId);
 
         assertFalse(foundTask.isPresent());
 
-        verify(taskRepository, times(1)).findById(1L);
+        verify(taskRepository, times(1)).findById(taskId);
     }
 }

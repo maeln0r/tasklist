@@ -3,6 +3,7 @@ package ru.maelnor.tasks.model;
 import lombok.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -10,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class AuthResponse {
-    private Long id;
+    private UUID id;
     private String token;
     private String refreshToken;
     private String username;

@@ -18,6 +18,7 @@ import ru.maelnor.tasks.service.RefreshTokenService;
 
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -81,7 +82,7 @@ public class SecurityService {
     public void logout() {
         var currentPrincipal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (currentPrincipal instanceof AppUserDetails userDetails) {
-            Long userId = userDetails.getId();
+            UUID userId = userDetails.getId();
             refreshTokenService.deleteByUserId(userId);
         }
     }

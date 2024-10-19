@@ -16,6 +16,7 @@ import ru.maelnor.tasks.entity.TaskEntity;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -25,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Transactional
 @TestPropertySource(properties = "repository.type=jdbc")
 public class JdbcTaskEntityRepositoryTest {
+    private UUID taskId;
 
     @Container
     public static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest")
@@ -47,6 +49,7 @@ public class JdbcTaskEntityRepositoryTest {
 
     @BeforeEach
     void setUp() {
+        taskId = UUID.randomUUID();
         jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS tasks (id SERIAL PRIMARY KEY, name VARCHAR(255), completed BOOLEAN)");
         jdbcTemplate.execute("TRUNCATE TABLE tasks RESTART IDENTITY");
     }
@@ -68,11 +71,12 @@ public class JdbcTaskEntityRepositoryTest {
     void shouldFindTaskById() {
         TaskEntity taskEntity = new TaskEntity();
         taskEntity.setName("Test Task");
+        taskEntity.setId(taskId);
         taskEntity.setCompleted(false);
 
         jdbcTaskRepository.save(taskEntity);
 
-        Optional<TaskEntity> foundTask = jdbcTaskRepository.findById(1L);
+        Optional<TaskEntity> foundTask = jdbcTaskRepository.findById(taskId);
         assertTrue(foundTask.isPresent());
         assertEquals("Test Task", foundTask.get().getName());
     }
@@ -87,10 +91,10 @@ public class JdbcTaskEntityRepositoryTest {
 
         taskEntity.setName("Updated Task");
         taskEntity.setCompleted(true);
-        taskEntity.setId(1L);
+        taskEntity.setId(taskId);
         jdbcTaskRepository.update(taskEntity);
 
-        Optional<TaskEntity> updatedTask = jdbcTaskRepository.findById(1L);
+        Optional<TaskEntity> updatedTask = jdbcTaskRepository.findById(taskId);
         assertTrue(updatedTask.isPresent());
         assertEquals("Updated Task", updatedTask.get().getName());
         assertTrue(updatedTask.get().isCompleted());
@@ -100,11 +104,12 @@ public class JdbcTaskEntityRepositoryTest {
     void shouldDeleteTask() {
         TaskEntity taskEntity = new TaskEntity();
         taskEntity.setName("Test Task");
+        taskEntity.setId(taskId);
         taskEntity.setCompleted(false);
 
         jdbcTaskRepository.save(taskEntity);
 
-        jdbcTaskRepository.delete(1L);
+        jdbcTaskRepository.delete(taskId);
 
         List<TaskEntity> taskEntities = jdbcTaskRepository.findAll();
         assertTrue(taskEntities.isEmpty());

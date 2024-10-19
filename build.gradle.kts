@@ -51,10 +51,12 @@ dependencies {
     annotationProcessor("org.mapstruct:mapstruct-processor:1.6.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.testcontainers:junit-jupiter:1.20.1")
     testImplementation("org.testcontainers:postgresql:1.20.1")
     testImplementation("org.testcontainers:testcontainers:1.20.1")
     testImplementation("org.testcontainers:kafka:1.20.1")
+    testImplementation("com.redis.testcontainers:testcontainers-redis:1.6.4")
     testImplementation("org.awaitility:awaitility:4.2.2")
 
 }

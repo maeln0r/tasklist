@@ -26,6 +26,7 @@ import ru.maelnor.tasks.service.kafka.TaskProducer;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @ConditionalOnProperty(name = "repository.type", havingValue = "jpa")
@@ -77,6 +78,8 @@ public class DatabaseTaskService implements TaskService {
     @CachePut(value = "tasks", key = "#result.id")
     public TaskModel addTask(TaskDto taskDto) {
         TaskEntity taskEntity = taskMapper.toEntity(taskDto);
+        AppUserDetails user = currentUserService.getCurrentUser();
+        taskEntity.setOwner(user.getUser());
         TaskModel result = taskMapper.toModel(taskRepository.save(taskEntity));
         taskProducer.sendMessage(taskMapper.toDto(result), TaskStatus.NEW);
         return result;
@@ -94,7 +97,7 @@ public class DatabaseTaskService implements TaskService {
     @Override
     @Transactional
     @CacheEvict(value = "tasks", key = "#id")
-    public void deleteTask(Long id) {
+    public void deleteTask(UUID id) {
         TaskEntity taskEntity = taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException(id));
         AppUserDetails user = currentUserService.getCurrentUser();
@@ -111,7 +114,7 @@ public class DatabaseTaskService implements TaskService {
 
     @Override
     @Cacheable(value = "tasks", key = "#id")
-    public Optional<TaskModel> getTaskById(Long id) {
+    public Optional<TaskModel> getTaskById(UUID id) {
         return taskRepository.findById(id)
                 .map(taskMapper::toModel);
     }

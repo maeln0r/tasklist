@@ -15,6 +15,7 @@ import ru.maelnor.tasks.service.TaskService;
 
 import java.text.MessageFormat;
 import java.util.Optional;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/tasks")
@@ -58,7 +59,7 @@ public class TaskWebController {
     }
 
     @GetMapping("/edit/{id}")
-    public String editTaskForm(@PathVariable Long id, Model model) {
+    public String editTaskForm(@PathVariable UUID id, Model model) {
         Optional<TaskModel> task = taskService.getTaskById(id);
         if (task.isEmpty()) {
             throw new TaskNotFoundException(id);
@@ -73,7 +74,7 @@ public class TaskWebController {
     }
 
     @PutMapping("/edit/{id}")
-    public String updateTask(Model model, @PathVariable Long id, @Valid TaskDto dto, BindingResult bindingResult) {
+    public String updateTask(Model model, @PathVariable UUID id, @Valid TaskDto dto, BindingResult bindingResult) {
         Optional<TaskModel> task = taskService.getTaskById(id);
         if (task.isEmpty()) {
             bindingResult.rejectValue("id", "task.notfound", MessageFormat.format("Задача с id: {0} не найдена", id));
@@ -93,7 +94,7 @@ public class TaskWebController {
     }
 
     @DeleteMapping("/{id}")
-    public String deleteTask(@PathVariable Long id) {
+    public String deleteTask(@PathVariable UUID id) {
         Optional<TaskModel> task = taskService.getTaskById(id);
         if (task.isEmpty()) {
             throw new TaskNotFoundException(id);

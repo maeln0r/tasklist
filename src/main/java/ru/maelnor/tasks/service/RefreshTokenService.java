@@ -25,7 +25,7 @@ public class RefreshTokenService {
         return jpaRefreshTokenRepository.findByRefreshToken(token);
     }
 
-    public RefreshTokenEntity createRefreshToken(Long userId) {
+    public RefreshTokenEntity createRefreshToken(UUID userId) {
         var refreshToken = RefreshTokenEntity
                 .builder()
                 .userId(userId)
@@ -44,7 +44,7 @@ public class RefreshTokenService {
         return token;
     }
 
-    public void deleteByUserId(Long userId) {
+    public void deleteByUserId(UUID userId) {
         jpaRefreshTokenRepository.deleteByUserId(userId);
     }
 }

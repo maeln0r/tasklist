@@ -8,13 +8,14 @@ import ru.maelnor.tasks.entity.RoleType;
 import ru.maelnor.tasks.entity.UserEntity;
 
 import java.util.Collection;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 public class AppUserDetails implements UserDetails {
 
     private final UserEntity user;
 
-    public Long getId() {
+    public UUID getId() {
         return user.getId();
     }
 
@@ -29,6 +30,10 @@ public class AppUserDetails implements UserDetails {
                 .stream()
                 .map(roleType -> new SimpleGrantedAuthority(roleType.name()))
                 .toList();
+    }
+
+    public UserEntity getUser() {
+        return user;
     }
 
     @Override

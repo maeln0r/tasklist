@@ -24,6 +24,7 @@ import ru.maelnor.tasks.service.TaskService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @PreAuthorize("isAuthenticated()")
@@ -75,7 +76,7 @@ public class TaskRestController {
                             schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/{id:\\d+}")
-    public ResponseEntity<TaskDto> getTaskById(@Parameter(description = "ID задачи", required = true) @PathVariable Long id) {
+    public ResponseEntity<TaskDto> getTaskById(@Parameter(description = "ID задачи", required = true) @PathVariable UUID id) {
         return taskService.getTaskById(id)
                 .map(TaskMapper.INSTANCE::toDto)
                 .map(ResponseEntity::ok)
@@ -110,7 +111,7 @@ public class TaskRestController {
                             schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PutMapping("/{id:\\d+}")
-    public ResponseEntity<TaskDto> updateTask(@Parameter(description = "ID задачи", required = true) @PathVariable Long id,
+    public ResponseEntity<TaskDto> updateTask(@Parameter(description = "ID задачи", required = true) @PathVariable UUID id,
                                               @Valid @RequestBody TaskDto taskDto) {
         Optional<TaskDto> updatedTask = taskService.getTaskById(id)
                 .map(TaskMapper.INSTANCE::toDto)
@@ -132,7 +133,7 @@ public class TaskRestController {
                             schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/{id:\\d+}")
-    public ResponseEntity<TaskDto> deleteTask(@Parameter(description = "ID задачи", required = true) @PathVariable Long id, @AuthenticationPrincipal UserEntity currentUser) {
+    public ResponseEntity<TaskDto> deleteTask(@Parameter(description = "ID задачи", required = true) @PathVariable UUID id, @AuthenticationPrincipal UserEntity currentUser) {
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
     }

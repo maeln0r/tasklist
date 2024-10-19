@@ -9,13 +9,14 @@ import ru.maelnor.tasks.model.TaskModel;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface TaskService {
     TaskMapper taskMapper = TaskMapper.INSTANCE;
     List<TaskModel> getAllTasks();
     TaskModel addTask(TaskDto taskDto);
     void updateTask(TaskDto taskDto);
-    void deleteTask(Long id);
-    Optional<TaskModel> getTaskById(Long id);
+    void deleteTask(UUID id);
+    Optional<TaskModel> getTaskById(UUID id);
     Page<TaskModel> filterBy(TaskFilter filter);
 }

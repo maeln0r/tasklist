@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @ConditionalOnProperty(name = "repository.type", havingValue = "jdbc", matchIfMissing = true)
@@ -40,13 +41,19 @@ public class JdbcTaskRepository implements TaskRepository {
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(UUID id) {
         String sql = "DELETE FROM tasks WHERE id = ?";
         jdbcTemplate.update(sql, id);
     }
 
     @Override
-    public Optional<TaskEntity> findById(Long id) {
+    public void deleteAll() {
+        String sql = "DELETE FROM tasks";
+        jdbcTemplate.update(sql);
+    }
+
+    @Override
+    public Optional<TaskEntity> findById(UUID id) {
         String sql = "SELECT * FROM tasks WHERE id = ?";
         List<TaskEntity> taskEntities = jdbcTemplate.query(sql, taskRowMapper(), id);
         return taskEntities.stream().findFirst();
@@ -55,7 +62,7 @@ public class JdbcTaskRepository implements TaskRepository {
     private RowMapper<TaskEntity> taskRowMapper() {
         return (rs, rowNum) -> {
             TaskEntity taskEntity = new TaskEntity();
-            taskEntity.setId(rs.getLong("id"));
+            taskEntity.setId(UUID.fromString(rs.getString("id")));
             taskEntity.setName(rs.getString("name"));
             taskEntity.setCompleted(rs.getBoolean("completed"));
             return taskEntity;

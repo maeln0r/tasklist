@@ -17,6 +17,8 @@ import ru.maelnor.tasks.dto.TaskDto;
 import ru.maelnor.tasks.exception.TaskNotFoundException;
 import ru.maelnor.tasks.service.TaskService;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -93,7 +95,7 @@ public class TaskEntityWebControllerTest {
 
     @Test
     void shouldShowEditTaskForm() throws Exception {
-        Long taskId = taskService.getAllTasks().getFirst().getId();
+        UUID taskId = taskService.getAllTasks().getFirst().getId();
         mockMvc.perform(get("/tasks/edit/{id}", taskId))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("taskDto"))
@@ -103,7 +105,7 @@ public class TaskEntityWebControllerTest {
 
     @Test
     void shouldThrowTaskNotFoundExceptionOnEditFrom() throws Exception {
-        Long taskId = taskService.getAllTasks().getLast().getId() + 10;
+        UUID taskId = UUID.randomUUID();
         MvcResult result = mockMvc.perform(get("/tasks/edit/{id}", taskId))
                 .andExpect(status().isNotFound())
                 .andReturn();
@@ -112,7 +114,7 @@ public class TaskEntityWebControllerTest {
 
     @Test
     void shouldUpdateTask() throws Exception {
-        Long taskId = taskService.getAllTasks().getFirst().getId();
+        UUID taskId = taskService.getAllTasks().getFirst().getId();
         mockMvc.perform(put("/tasks/edit/{id}", taskId)
                         .param("name", "Updated Task")
                         .param("completed", "true"))
@@ -122,7 +124,7 @@ public class TaskEntityWebControllerTest {
 
     @Test
     void shouldReturnValidationErrorsOnUpdateTask() throws Exception {
-        Long taskId = taskService.getAllTasks().getFirst().getId();
+        UUID taskId = taskService.getAllTasks().getFirst().getId();
         mockMvc.perform(put("/tasks/edit/{id}", taskId)
                         .param("name", "")) // Пустое имя вызывает ошибку валидации
                 .andExpect(status().isOk())
@@ -132,7 +134,7 @@ public class TaskEntityWebControllerTest {
 
     @Test
     void shouldThrowTaskNotFoundExceptionOnUpdateTask() throws Exception {
-        Long taskId = taskService.getAllTasks().getLast().getId() + 10;
+        UUID taskId = UUID.randomUUID();
         MvcResult result = mockMvc.perform(put("/tasks/edit/{id}", taskId))
                 .andExpect(status().isNotFound())
                 .andReturn();
@@ -141,7 +143,7 @@ public class TaskEntityWebControllerTest {
 
     @Test
     void shouldDeleteTask() throws Exception {
-        Long taskId = taskService.getAllTasks().getFirst().getId();
+        UUID taskId = taskService.getAllTasks().getFirst().getId();
         mockMvc.perform(delete("/tasks/{id}", taskId))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/tasks"));
