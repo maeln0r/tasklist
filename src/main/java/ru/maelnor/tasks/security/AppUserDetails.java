@@ -11,14 +11,16 @@ import java.util.Collection;
 import java.util.UUID;
 
 @RequiredArgsConstructor
-public class AppUserDetails implements UserDetails {
+public class AppUserDetails implements UserDetails, CustomUserDetails {
 
     private final UserEntity user;
 
+    @Override
     public UUID getId() {
         return user.getId();
     }
 
+    @Override
     public String getEmail() {
         return user.getEmail();
     }
@@ -30,10 +32,6 @@ public class AppUserDetails implements UserDetails {
                 .stream()
                 .map(roleType -> new SimpleGrantedAuthority(roleType.name()))
                 .toList();
-    }
-
-    public UserEntity getUser() {
-        return user;
     }
 
     @Override
@@ -66,14 +64,17 @@ public class AppUserDetails implements UserDetails {
         return true;
     }
 
+    @Override
     public boolean isUser() {
         return user.getRoles().contains(RoleType.ROLE_USER);
     }
 
+    @Override
     public boolean isAdmin() {
         return user.getRoles().contains(RoleType.ROLE_ADMIN);
     }
 
+    @Override
     public boolean isManager() {
         return user.getRoles().contains(RoleType.ROLE_MANAGER);
     }

@@ -17,6 +17,19 @@ spring:
     bootstrap-servers: kafka:9092
     consumer:
       group-id: task-list-group
+  security:
+    oauth2:
+      client:
+        provider:
+          tasklist-keycloak:
+            issuer-uri: http://host.docker.internal:8080/realms/tasklist-keycloak
+        registration:
+          keycloak:
+            provider: tasklist-keycloak
+            authorization-grant-type: authorization_code
+            client-id: tasklist-keycloak-confidential
+            client-secret: 6qT92pg69IelZSSGNMuOOCWPB5oFpV1u
+            scope: openid
 server:
   port: 8083
   error:
@@ -40,4 +53,4 @@ app:
     secret: "taskSecretKey"
     tokenExpiration: 3m
     refreshTokenExpiration: 30m
-  auth-type: jwt
+  auth-type: keycloak

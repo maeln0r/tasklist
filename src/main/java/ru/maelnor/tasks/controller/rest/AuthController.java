@@ -2,6 +2,7 @@ package ru.maelnor.tasks.controller.rest;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +21,7 @@ import java.text.MessageFormat;
 @RequestMapping("/api/auth")
 @Tag(name = "Auth", description = "API авторизации")
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "app.auth-type", havingValue = "jwt", matchIfMissing = true)
 public class AuthController {
     private final JpaUserRepository userRepository;
     private final SecurityService securityService;

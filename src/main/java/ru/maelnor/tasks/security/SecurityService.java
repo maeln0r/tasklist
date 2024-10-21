@@ -1,6 +1,7 @@
 package ru.maelnor.tasks.security;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,6 +23,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "app.auth-type", havingValue = "jwt", matchIfMissing = true)
 public class SecurityService {
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;

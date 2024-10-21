@@ -2,8 +2,8 @@
     <header class="main-header container">
         <h1>Список дел</h1>
         <nav class="main-nav">
-            <a href="/taskEntities" class="nav-link">Дела</a>
-            <a href="/taskEntities/add" class="nav-link">Добавить</a>
+            <a href="/tasks" class="nav-link">Дела</a>
+            <a href="/tasks/add" class="nav-link">Добавить</a>
         </nav>
         <hr>
     </header>

@@ -3,7 +3,7 @@
 
 <@base.layout>
     <h2>${pageTitle}</h2>
-    <form action="/taskEntities/edit/${taskDto.id?c}" method="post" class="taskEntity-form">
+    <form action="/tasks/edit/${taskDto.id?c}" method="post" class="taskEntity-form">
         <!-- Поле для имени задачи -->
         <input type="hidden" name="_method" value="put"/>
         <div class="form-group">

@@ -1,5 +1,6 @@
 package ru.maelnor.tasks.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
@@ -17,11 +18,13 @@ import ru.maelnor.tasks.dto.TaskDto;
 import ru.maelnor.tasks.dto.filter.TaskFilter;
 import ru.maelnor.tasks.dto.kafka.TaskStatus;
 import ru.maelnor.tasks.entity.TaskEntity;
+import ru.maelnor.tasks.entity.UserEntity;
 import ru.maelnor.tasks.exception.TaskNotFoundException;
 import ru.maelnor.tasks.model.TaskModel;
 import ru.maelnor.tasks.repository.JpaTaskRepository;
+import ru.maelnor.tasks.repository.JpaUserRepository;
 import ru.maelnor.tasks.repository.specification.TaskSpecification;
-import ru.maelnor.tasks.security.AppUserDetails;
+import ru.maelnor.tasks.security.CustomUserDetails;
 import ru.maelnor.tasks.service.kafka.TaskProducer;
 
 import java.util.List;
@@ -32,25 +35,20 @@ import java.util.UUID;
 @ConditionalOnProperty(name = "repository.type", havingValue = "jpa")
 @EnableCaching
 @Slf4j
+@RequiredArgsConstructor
 public class DatabaseTaskService implements TaskService {
 
     private final JpaTaskRepository taskRepository;
     private final CacheManager cacheManager;
     private final TaskProducer taskProducer;
     private final CurrentUserService currentUserService;
-
-    public DatabaseTaskService(JpaTaskRepository taskRepository, CacheManager cacheManager, TaskProducer taskProducer, CurrentUserService currentUserService) {
-        this.taskRepository = taskRepository;
-        this.cacheManager = cacheManager;
-        this.taskProducer = taskProducer;
-        this.currentUserService = currentUserService;
-    }
+    private final JpaUserRepository userRepository;
 
     @Override
     @Cacheable(value = "tasks")
     public List<TaskModel> getAllTasks() {
         List<TaskModel> tasks;
-        AppUserDetails user = currentUserService.getCurrentUser();
+        CustomUserDetails user = currentUserService.getCurrentUser();
         if (user.isAdmin() || user.isManager()) {
             tasks = taskRepository.findAll().stream()
                     .map(taskMapper::toModel)
@@ -78,8 +76,10 @@ public class DatabaseTaskService implements TaskService {
     @CachePut(value = "tasks", key = "#result.id")
     public TaskModel addTask(TaskDto taskDto) {
         TaskEntity taskEntity = taskMapper.toEntity(taskDto);
-        AppUserDetails user = currentUserService.getCurrentUser();
-        taskEntity.setOwner(user.getUser());
+        CustomUserDetails user = currentUserService.getCurrentUser();
+        UserEntity userEntity = userRepository.findById(user.getId())
+                .orElseThrow(() -> new AccessDeniedException("Недостаточно прав для удаления задачи"));
+        taskEntity.setOwner(userEntity);
         TaskModel result = taskMapper.toModel(taskRepository.save(taskEntity));
         taskProducer.sendMessage(taskMapper.toDto(result), TaskStatus.NEW);
         return result;
@@ -100,7 +100,7 @@ public class DatabaseTaskService implements TaskService {
     public void deleteTask(UUID id) {
         TaskEntity taskEntity = taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException(id));
-        AppUserDetails user = currentUserService.getCurrentUser();
+        CustomUserDetails user = currentUserService.getCurrentUser();
         TaskDto taskDto = taskMapper.toDto(taskEntity);
         if (user.isAdmin() ||
                 taskEntity.getOwner().getId().equals(user.getId())) {

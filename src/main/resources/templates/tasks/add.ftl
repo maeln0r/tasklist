@@ -3,7 +3,7 @@
 
 <@base.layout>
     <h2>${pageTitle}</h2>
-    <form action="/taskEntities/add" method="post" class="taskEntity-form">
+    <form action="/tasks/add" method="post" class="taskEntity-form">
 
         <!-- Поле для имени задачи -->
         <div class="form-group">

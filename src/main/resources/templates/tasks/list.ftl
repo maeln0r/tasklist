@@ -8,7 +8,7 @@
     <h2>${pageTitle}</h2>
 
     <!-- Форма фильтрации -->
-    <@filterFragments.filterForm action="/taskEntities" taskFilter=taskFilter />
+    <@filterFragments.filterForm action="/tasks" taskFilter=taskFilter />
 
     <!-- Таблица задач -->
     <table class="taskEntity-table">
@@ -29,8 +29,8 @@
                     </span>
                 </td>
                 <td class="action-buttons">
-                    <a href="/taskEntities/edit/${taskEntity.id?c}" class="btn btn-primary">Редактировать</a>
-                    <form action="/taskEntities/${taskEntity.id?c}" method="post" style="display:inline;">
+                    <a href="/tasks/edit/${taskEntity.id?c}" class="btn btn-primary">Редактировать</a>
+                    <form action="/tasks/${taskEntity.id?c}" method="post" style="display:inline;">
                         <input type="hidden" name="_method" value="delete"/>
                         <button type="submit" class="btn btn-danger">Удалить</button>
                     </form>
@@ -45,7 +45,7 @@
     currentPage=page.number!0
     totalPages=page.totalPages!1
     pageSize=page.size!10
-    baseUrl="/taskEntities"
+    baseUrl="/tasks"
     queryParams="&name=${taskFilter.name!}&completed=${taskFilter.completed!}"
     />
 </@base.layout>

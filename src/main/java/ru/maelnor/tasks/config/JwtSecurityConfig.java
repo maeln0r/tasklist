@@ -25,7 +25,7 @@ import ru.maelnor.tasks.security.jwt.JwtTokenFilter;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "app.auth-type", havingValue = "jwt", matchIfMissing = true)
-public class SecurityConfig {
+public class JwtSecurityConfig {
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;

@@ -34,6 +34,7 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
     implementation("org.postgresql:postgresql:42.7.4")
     implementation("org.liquibase:liquibase-core:4.29.1")
