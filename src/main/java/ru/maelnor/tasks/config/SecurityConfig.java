@@ -1,6 +1,7 @@
 package ru.maelnor.tasks.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,15 +17,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import ru.maelnor.tasks.security.UserDetailsServiceImpl;
+import ru.maelnor.tasks.security.jwt.JwtAccessDeniedHandler;
 import ru.maelnor.tasks.security.jwt.JwtAuthenticationEntryPoint;
 import ru.maelnor.tasks.security.jwt.JwtTokenFilter;
 
 @Configuration
 @EnableMethodSecurity
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "app.auth-type", havingValue = "jwt", matchIfMissing = true)
 public class SecurityConfig {
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final JwtTokenFilter jwtTokenFilter;
 
     @Bean
@@ -50,7 +54,10 @@ public class SecurityConfig {
         http.authorizeHttpRequests((auth) -> auth.requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .exceptionHandling(configurer -> configurer.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                .exceptionHandling(configurer -> configurer
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(jwtAccessDeniedHandler)
+                )
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
