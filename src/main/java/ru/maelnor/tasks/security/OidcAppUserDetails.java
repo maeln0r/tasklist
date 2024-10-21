@@ -1,23 +1,23 @@
 package ru.maelnor.tasks.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import ru.maelnor.tasks.entity.RoleType;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 public class OidcAppUserDetails implements CustomUserDetails {
 
     private final OidcUser oidcUser;
-    private final String rolePrefix = "OIDC_";
+    private final Set<RoleType> roles;
 
-    public OidcAppUserDetails(OidcUser oidcUser) {
-        this.oidcUser = oidcUser;
-    }
 
     @Override
     public UUID getId() {
-        // В OIDC может не быть прямого UUID, можно взять уникальный идентификатор из токена
         return UUID.fromString(oidcUser.getSubject());
     }
 
@@ -28,7 +28,7 @@ public class OidcAppUserDetails implements CustomUserDetails {
 
     @Override
     public String getUsername() {
-        return oidcUser.getFullName();
+        return oidcUser.getPreferredUsername();
     }
 
     @Override
@@ -38,20 +38,16 @@ public class OidcAppUserDetails implements CustomUserDetails {
 
     @Override
     public boolean isAdmin() {
-        // Проверяйте роли, если они приходят в токене или загружаются из Keycloak
-        return oidcUser.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals(rolePrefix + "ADMIN"));
+        return roles.contains(RoleType.ROLE_ADMIN);
     }
 
     @Override
     public boolean isUser() {
-        return oidcUser.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals(rolePrefix + "USER"));
+        return roles.contains(RoleType.ROLE_USER);
     }
 
     @Override
     public boolean isManager() {
-        return oidcUser.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals(rolePrefix + "MANAGER"));
+        return roles.contains(RoleType.ROLE_MANAGER);
     }
 }

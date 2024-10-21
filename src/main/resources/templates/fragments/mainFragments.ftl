@@ -6,6 +6,10 @@
             <a href="/tasks/add" class="nav-link">Добавить</a>
         </nav>
         <hr>
+        <#if username??>
+            <span>Привет, ${username}!</span>
+            <a href="/logout" class="nav-link">Выйти</a>
+        </#if>
     </header>
 </#macro>
 

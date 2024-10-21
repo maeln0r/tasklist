@@ -15,7 +15,6 @@ import java.util.UUID;
 @Builder
 public class UserEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String username;
     private String password;

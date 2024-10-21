@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.maelnor.tasks.entity.RoleType;
 import ru.maelnor.tasks.entity.UserEntity;
 import ru.maelnor.tasks.repository.JpaUserRepository;
+import ru.maelnor.tasks.security.OidcAppUserDetails;
 
 import java.util.*;
 
@@ -46,6 +47,12 @@ public class UserService {
             return newUser;
         }
     }
+
+    public OidcAppUserDetails createOidcAppUserDetails(OidcUser oidcUser) {
+        Set<RoleType> roles = convertOidcRolesToRoleType(oidcUser);
+        return new OidcAppUserDetails(oidcUser, roles);
+    }
+
 
     private Set<RoleType> convertOidcRolesToRoleType(OidcUser oidcUser) {
         Set<RoleType> roles = new HashSet<>();

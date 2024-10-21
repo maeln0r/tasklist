@@ -5,6 +5,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import ru.maelnor.tasks.validation.TaskFilterValid;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @TaskFilterValid
@@ -14,4 +16,5 @@ public class TaskFilter {
     private Integer pageSize;
     private String name;
     private Boolean completed;
+    private UUID ownerId;
 }

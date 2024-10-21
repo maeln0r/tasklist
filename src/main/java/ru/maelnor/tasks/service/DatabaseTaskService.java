@@ -10,7 +10,9 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,7 +80,7 @@ public class DatabaseTaskService implements TaskService {
         TaskEntity taskEntity = taskMapper.toEntity(taskDto);
         CustomUserDetails user = currentUserService.getCurrentUser();
         UserEntity userEntity = userRepository.findById(user.getId())
-                .orElseThrow(() -> new AccessDeniedException("Недостаточно прав для удаления задачи"));
+                .orElseThrow(() -> new AccessDeniedException("Недостаточно прав для добавления задачи"));
         taskEntity.setOwner(userEntity);
         TaskModel result = taskMapper.toModel(taskRepository.save(taskEntity));
         taskProducer.sendMessage(taskMapper.toDto(result), TaskStatus.NEW);
@@ -123,13 +125,37 @@ public class DatabaseTaskService implements TaskService {
     @Override
     @Cacheable(value = "tasks")
     public Page<TaskModel> filterBy(TaskFilter taskFilter) {
-        return taskRepository.findAll(TaskSpecification.withFilter(taskFilter),
-                PageRequest.of(
-                        taskFilter.getPageNumber() != null ? taskFilter.getPageNumber() : 0,
-                        taskFilter.getPageSize() != null ? taskFilter.getPageSize() : 10,
-                        Sort.Direction.DESC,
-                        "id"
-                )
-        ).map(taskMapper::toModel);
+
+        Page<TaskModel> tasks;
+        CustomUserDetails user = currentUserService.getCurrentUser();
+        Pageable pageable = PageRequest.of(
+                taskFilter.getPageNumber() != null ? taskFilter.getPageNumber() : 0,
+                taskFilter.getPageSize() != null ? taskFilter.getPageSize() : 10,
+                Sort.Direction.DESC,
+                "id"
+        );
+        if (user.isAdmin() || user.isManager()) {
+            tasks = taskRepository.findAll(TaskSpecification.withFilter(taskFilter),
+                    pageable
+            ).map(taskMapper::toModel);
+        } else {
+            tasks = taskRepository.findAll(
+                    Specification.where(TaskSpecification.ownedBy(user.getId()))
+                            .and(TaskSpecification.withFilter(taskFilter)),
+                    pageable
+            ).map(taskMapper::toModel);
+        }
+
+
+        var cache = cacheManager.getCache("tasks");
+        // Складываем задачи из разных запросов в одно место
+        if (cache != null) {
+            tasks.forEach(task -> cache.put(task.getId(), task));
+        } else {
+            log.warn("Кеширование недоступно");
+        }
+
+
+        return tasks;
     }
 }

@@ -6,6 +6,7 @@ import ru.maelnor.tasks.dto.filter.TaskFilter;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 public interface TaskSpecification {
@@ -18,6 +19,9 @@ public interface TaskSpecification {
                                 .orElse(null),
                         Optional.ofNullable(taskFilter.getCompleted())
                                 .map(TaskSpecification::byCompleted)
+                                .orElse(null),
+                        Optional.ofNullable(taskFilter.getOwnerId())
+                                .map(TaskSpecification::ownedBy)
                                 .orElse(null)
                 ).filter(Objects::nonNull)
                 .reduce(Specification::and)
@@ -31,5 +35,9 @@ public interface TaskSpecification {
 
     static Specification<TaskEntity> byCompleted(boolean completed) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("completed"), completed);
+    }
+
+    static Specification<TaskEntity> ownedBy(UUID ownerId) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("owner").get("id"), ownerId);
     }
 }
