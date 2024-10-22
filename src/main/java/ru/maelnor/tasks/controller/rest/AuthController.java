@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.maelnor.tasks.exception.AlreadyExistsException;
 import ru.maelnor.tasks.model.*;
-import ru.maelnor.tasks.repository.JpaUserRepository;
 import ru.maelnor.tasks.security.SecurityService;
 
 import java.text.MessageFormat;
@@ -23,7 +21,6 @@ import java.text.MessageFormat;
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "app.auth-type", havingValue = "jwt", matchIfMissing = true)
 public class AuthController {
-    private final JpaUserRepository userRepository;
     private final SecurityService securityService;
 
     @PostMapping("/signin")
@@ -32,16 +29,9 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @Deprecated
     public ResponseEntity<SimpleResponse> registerUser(@RequestBody CreateUserRequest createUserRequest) {
-        if (userRepository.existsByUsername(createUserRequest.getUsername())) {
-            throw new AlreadyExistsException("Username already exists");
-        }
-
-        if (userRepository.existsByEmail(createUserRequest.getEmail())) {
-            throw new AlreadyExistsException("Email already exists");
-        }
-        securityService.register(createUserRequest);
-        return ResponseEntity.ok(new SimpleResponse("User created"));
+        return ResponseEntity.badRequest().build();
     }
 
     @PostMapping("/refresh-token")

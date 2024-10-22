@@ -57,6 +57,7 @@ public class SecurityService {
                 .build();
     }
 
+    @Deprecated
     public void register(CreateUserRequest createUserRequest) {
         var user = UserEntity.builder()
                 .username(createUserRequest.getUsername())

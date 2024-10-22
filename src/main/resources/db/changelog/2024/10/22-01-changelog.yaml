@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1729578305629-1
+      author: maeln0r
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+            tableName: tasks
+

@@ -11,7 +11,7 @@
     <@filterFragments.filterForm action="/tasks" taskFilter=taskFilter />
 
     <!-- Таблица задач -->
-    <table class="taskEntity-table">
+    <table class="taskEntity-table task-table">
         <thead>
         <tr>
             <th>Имя</th>
@@ -20,23 +20,29 @@
         </tr>
         </thead>
         <tbody>
-        <#list page.content as taskEntity>
+        <#if page.content?? && (page.content?size > 0)>
+            <#list page.content as taskEntity>
+                <tr>
+                    <td><a href="/tasks/view/${taskEntity.id}" class="task-link">${taskEntity.name}</a></td>
+                    <td>
+                        <span class="${taskEntity.completed?string("status-completed", "status-not-completed")}">
+                            ${taskEntity.completed?string("Завершена", "Не завершена")}
+                        </span>
+                    </td>
+                    <td class="action-buttons">
+                        <a href="/tasks/edit/${taskEntity.id}" class="btn btn-primary">Редактировать</a>
+                        <form action="/tasks/${taskEntity.id}" method="post" style="display:inline;">
+                            <input type="hidden" name="_method" value="delete"/>
+                            <button type="submit" class="btn btn-danger">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
+            </#list>
+        <#else>
             <tr>
-                <td>${taskEntity.name}</td>
-                <td>
-                    <span class="${taskEntity.completed?string("status-completed", "status-not-completed")}">
-                        ${taskEntity.completed?string("Завершена", "Не завершена")}
-                    </span>
-                </td>
-                <td class="action-buttons">
-                    <a href="/tasks/edit/${taskEntity.id?c}" class="btn btn-primary">Редактировать</a>
-                    <form action="/tasks/${taskEntity.id?c}" method="post" style="display:inline;">
-                        <input type="hidden" name="_method" value="delete"/>
-                        <button type="submit" class="btn btn-danger">Удалить</button>
-                    </form>
-                </td>
+                <td colspan="3" class="no-tasks-message">Задачи не найдены</td>
             </tr>
-        </#list>
+        </#if>
         </tbody>
     </table>
 
@@ -49,3 +55,4 @@
     queryParams="&name=${taskFilter.name!}&completed=${taskFilter.completed!}"
     />
 </@base.layout>
+

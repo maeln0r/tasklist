@@ -15,7 +15,6 @@
 
 <#macro footer>
     <footer class="main-footer container">
-        <hr>
         <p>&copy; ${.now?string("yyyy")} Список дел</p>
     </footer>
 </#macro>

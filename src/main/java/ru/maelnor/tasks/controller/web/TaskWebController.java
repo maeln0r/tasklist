@@ -29,7 +29,7 @@ public class TaskWebController {
 
     @InitBinder
     protected void initBinder(WebDataBinder binder) {
-        binder.setAllowedFields("pageNumber", "pageSize", "completed", "name");
+        binder.setAllowedFields("pageNumber", "pageSize", "completed", "name", "description");
     }
 
     @GetMapping
@@ -38,6 +38,18 @@ public class TaskWebController {
         model.addAttribute("page", taskService.filterBy(taskFilter));
         model.addAttribute("taskFilter", taskFilter);
         return "tasks/list";
+    }
+
+    @GetMapping("/view/{id}")
+    public String viewTask(@PathVariable UUID id, Model model) {
+        Optional<TaskModel> task = taskService.getTaskById(id);
+        if (task.isEmpty()) {
+            throw new TaskNotFoundException(id);
+        }
+        TaskDto taskDto = TaskMapper.INSTANCE.toDto(task.get());
+        model.addAttribute("taskDto", taskDto);
+        model.addAttribute("pageTitle", "Просмотр задачи с id: " + id);
+        return "tasks/view";
     }
 
     @GetMapping("/add")
@@ -64,10 +76,7 @@ public class TaskWebController {
         if (task.isEmpty()) {
             throw new TaskNotFoundException(id);
         }
-        TaskDto taskDto = new TaskDto();
-        taskDto.setId(task.get().getId());
-        taskDto.setName(task.get().getName());
-        taskDto.setCompleted(task.get().isCompleted());
+        TaskDto taskDto = TaskMapper.INSTANCE.toDto(task.get());
         model.addAttribute("taskDto", taskDto);
         model.addAttribute("pageTitle", "Редактирование задачи с id: " + id);
         return "tasks/edit";
@@ -81,7 +90,9 @@ public class TaskWebController {
             throw new TaskNotFoundException(id);
         }
         if (bindingResult.hasErrors()) {
+            dto.setId(id);
             model.addAttribute("taskDto", dto);
+            model.addAttribute("pageTitle", "Редактирование задачи с id: " + id);
             model.addAttribute("bindingErrors", bindingResult.getAllErrors());
             return "tasks/edit";
         }
@@ -89,6 +100,7 @@ public class TaskWebController {
         updatedTask.setId(id);
         updatedTask.setName(dto.getName());
         updatedTask.setCompleted(dto.isCompleted());
+        updatedTask.setDescription(dto.getDescription());
         taskService.updateTask(updatedTask);
         return "redirect:/tasks";
     }

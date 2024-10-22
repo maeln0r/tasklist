@@ -30,6 +30,8 @@ spring:
             client-id: tasklist-keycloak-confidential
             client-secret: 6qT92pg69IelZSSGNMuOOCWPB5oFpV1u
             scope: openid
+#  autoconfigure:
+#    exclude: org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
 server:
   port: 8083
   error:

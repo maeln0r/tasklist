@@ -47,7 +47,6 @@ public class DatabaseTaskService implements TaskService {
     private final JpaUserRepository userRepository;
 
     @Override
-    @Cacheable(value = "tasks")
     public List<TaskModel> getAllTasks() {
         List<TaskModel> tasks;
         CustomUserDetails user = currentUserService.getCurrentUser();
@@ -60,7 +59,6 @@ public class DatabaseTaskService implements TaskService {
                     .map(taskMapper::toModel)
                     .toList();
         }
-
 
         var cache = cacheManager.getCache("tasks");
         // Складываем задачи из разных запросов в одно место
@@ -91,9 +89,21 @@ public class DatabaseTaskService implements TaskService {
     @Transactional
     @CacheEvict(value = "tasks", key = "#taskDto.id")
     public void updateTask(TaskDto taskDto) {
-        TaskEntity taskEntity = taskMapper.toEntity(taskDto);
-        taskProducer.sendMessage(taskDto, TaskStatus.UPDATED);
-        taskRepository.save(taskEntity);
+        TaskEntity taskEntity = taskRepository.findById(taskDto.getId())
+                .orElseThrow(() -> new TaskNotFoundException(taskDto.getId()));
+        CustomUserDetails user = currentUserService.getCurrentUser();
+        UserEntity userEntity = userRepository.findById(user.getId())
+                .orElseThrow(() -> new AccessDeniedException("Недостаточно прав для обновления задачи"));
+
+        if (user.isAdmin() ||
+                taskEntity.getOwner().getId().equals(user.getId())) {
+            TaskEntity updatedTask = taskMapper.toEntity(taskDto);
+            updatedTask.setOwner(userEntity);
+            taskProducer.sendMessage(taskDto, TaskStatus.UPDATED);
+            taskRepository.save(updatedTask);
+        } else {
+            throw new AccessDeniedException("Недостаточно прав для удаления задачи");
+        }
     }
 
     @Override
@@ -117,13 +127,25 @@ public class DatabaseTaskService implements TaskService {
     @Override
     @Cacheable(value = "tasks", key = "#id")
     public Optional<TaskModel> getTaskById(UUID id) {
-        return taskRepository.findById(id)
-                .map(taskMapper::toModel);
+        Optional<TaskEntity> taskEntityOptional = taskRepository.findById(id);
+
+        if (taskEntityOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        TaskEntity taskEntity = taskEntityOptional.get();
+        CustomUserDetails user = currentUserService.getCurrentUser();
+
+        if (user.isAdmin() || user.isManager() ||
+                taskEntity.getOwner().getId().equals(user.getId())) {
+            return Optional.of(taskMapper.toModel(taskEntity));
+        } else {
+            throw new AccessDeniedException("Недостаточно прав для просмотра задачи");
+        }
     }
 
-    // todo: Разобраться с кешитрованием постранички...
+
     @Override
-    @Cacheable(value = "tasks")
     public Page<TaskModel> filterBy(TaskFilter taskFilter) {
 
         Page<TaskModel> tasks;
@@ -146,7 +168,6 @@ public class DatabaseTaskService implements TaskService {
             ).map(taskMapper::toModel);
         }
 
-
         var cache = cacheManager.getCache("tasks");
         // Складываем задачи из разных запросов в одно место
         if (cache != null) {
@@ -154,7 +175,6 @@ public class DatabaseTaskService implements TaskService {
         } else {
             log.warn("Кеширование недоступно");
         }
-
 
         return tasks;
     }

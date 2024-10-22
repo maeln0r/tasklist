@@ -18,6 +18,7 @@ public class TaskEntity {
     private UUID id;
     private String name;
     private boolean completed;
+    private String description;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
