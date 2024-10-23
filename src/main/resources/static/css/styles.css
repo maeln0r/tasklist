@@ -311,8 +311,13 @@ body {
     margin-bottom: 10px;
 }
 
-.profile-form-container form p.fr {
-    float: right;
+.profile-form-container form p.tar {
+    text-align: right;
+}
+
+.profile-form-container div.alert.alert-success {
+    color: #28a745;
+    font-weight: bold;
 }
 
 /* Футер */
