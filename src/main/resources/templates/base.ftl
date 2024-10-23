@@ -7,6 +7,7 @@
         <meta charset="UTF-8">
         <title>${pageTitle!''}</title>
         <link rel="stylesheet" href="/css/styles.css">
+        <link rel="icon" href="/favicon.ico" type="image/x-icon">
     </head>
     <body>
     <@mainFragments.header pageTitle=pageTitle!''/>

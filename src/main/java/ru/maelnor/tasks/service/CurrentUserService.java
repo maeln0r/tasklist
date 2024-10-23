@@ -16,7 +16,7 @@ import ru.maelnor.tasks.security.CustomUserDetails;
 @Service
 @RequiredArgsConstructor
 public class CurrentUserService {
-    private final UserService userService;
+    private final OidcUserService userService;
 
     /**
      * Возвращает информацию о текущем аутентифицированном пользователе.

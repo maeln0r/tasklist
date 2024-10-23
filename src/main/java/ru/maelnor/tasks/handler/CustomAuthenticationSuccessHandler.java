@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import ru.maelnor.tasks.entity.UserEntity;
+import ru.maelnor.tasks.service.OidcUserService;
 import ru.maelnor.tasks.service.UserService;
 
 import java.io.IOException;
@@ -22,7 +23,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
-    private final UserService userService;
+    private final OidcUserService userService;
 
     /**
      * Метод, вызываемый при успешной аутентификации.

@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import ru.maelnor.tasks.service.CurrentUserService;
 
+import java.util.UUID;
+
 /**
  * Класс, предоставляющий глобальные данные для всех контроллеров.
  * Добавляет информацию о текущем пользователе в модель для использования в шаблонах представления.
@@ -31,7 +33,9 @@ public class GlobalControllerAdvice {
                 && authentication.isAuthenticated()
                 && !(authentication.getPrincipal() instanceof String && "anonymousUser".equals(authentication.getPrincipal()))) {
             String username = currentUser.getCurrentUser().getUsername();
+            UUID user_id = currentUser.getCurrentUser().getId();
             model.addAttribute("username", username); // Добавление имени пользователя в модель
+            model.addAttribute("user_id", user_id); // Добавление id пользователя в модель
         }
     }
 }

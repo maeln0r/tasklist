@@ -6,8 +6,8 @@
             <a href="/tasks/add" class="nav-link">Добавить</a>
         </nav>
         <hr>
-        <#if username??>
-            <span>Привет, ${username}!</span>
+        <#if username?? && user_id??>
+            <span>Привет, <a href="/user/profile/${user_id}">${username}</a>!</span>
             <a href="/logout" class="nav-link">Выйти</a>
         </#if>
     </header>
