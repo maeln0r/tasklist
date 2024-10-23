@@ -8,6 +8,10 @@ import org.springframework.data.redis.core.index.Indexed;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Сущность для хранения информации о refresh токенах в Redis.
+ * Каждый токен содержит идентификатор пользователя, сам токен, время его истечения и уникальный идентификатор.
+ */
 @RedisHash("refresh_token")
 @Getter
 @Setter

@@ -14,11 +14,26 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Обработчик, который вызывается, когда неаутентифицированный пользователь пытается получить доступ к защищенному ресурсу.
+ * Реализует интерфейс {@link AuthenticationEntryPoint} и отправляет JSON-ответ с кодом ошибки 401 (Unauthorized).
+ */
 @Component
 @Slf4j
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
     private final ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * Метод, который вызывается при попытке неаутентифицированного доступа к защищенному ресурсу.
+     * Логирует ошибку и отправляет JSON-ответ с кодом ошибки 401 и дополнительной информацией.
+     *
+     * @param request  объект {@link HttpServletRequest}, содержащий данные запроса
+     * @param response объект {@link HttpServletResponse}, содержащий данные ответа
+     * @param authException исключение, вызванное неудачной аутентификацией
+     * @throws IOException если возникает ошибка ввода-вывода при обработке ответа
+     * @throws ServletException если возникает ошибка в сервлете
+     */
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         log.error("Unauthorized error: {}", authException.getMessage());

@@ -5,6 +5,10 @@ import lombok.*;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Модель ответа при аутентификации пользователя.
+ * Содержит информацию о пользователе, токене доступа, refresh токене и ролях пользователя.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

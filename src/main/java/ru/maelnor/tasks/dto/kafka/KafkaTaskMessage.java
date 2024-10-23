@@ -8,6 +8,10 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+/**
+ * DTO для сообщений, отправляемых через Kafka.
+ * Используется для передачи информации о задачах с помощью Kafka.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
@@ -19,6 +23,12 @@ public class KafkaTaskMessage {
     private boolean completed;
     private TaskStatus status;
 
+    /**
+     * Создает объект KafkaTaskMessage на основе {@link TaskDto} и статуса задачи.
+     *
+     * @param taskDto объект задачи
+     * @param status статус задачи
+     */
     public KafkaTaskMessage(TaskDto taskDto, TaskStatus status) {
         this.id = taskDto.getId();
         this.name = taskDto.getName();

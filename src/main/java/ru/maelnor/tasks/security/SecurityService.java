@@ -21,16 +21,27 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Сервис для управления аутентификацией, регистрацией, обновлением токенов и выходом пользователя.
+ * Работает с JWT токенами и refresh токенами для управления безопасностью.
+ */
 @Service
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "app.auth-type", havingValue = "jwt", matchIfMissing = true)
 public class SecurityService {
+
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
     private final RefreshTokenService refreshTokenService;
     private final JpaUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Аутентифицирует пользователя на основе данных из запроса на вход и возвращает JWT токен и refresh токен.
+     *
+     * @param loginRequest запрос на вход {@link LoginRequest}, содержащий имя пользователя и пароль
+     * @return объект {@link AuthResponse}, содержащий токены и информацию о пользователе
+     */
     public AuthResponse authenticate(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
@@ -57,6 +68,12 @@ public class SecurityService {
                 .build();
     }
 
+    /**
+     * Регистрирует нового пользователя.
+     *
+     * @param createUserRequest запрос на создание пользователя {@link CreateUserRequest}
+     * @deprecated Этот метод устарел, рекомендуется использовать более современные подходы к регистрации.
+     */
     @Deprecated
     public void register(CreateUserRequest createUserRequest) {
         var user = UserEntity.builder()
@@ -69,6 +86,12 @@ public class SecurityService {
         userRepository.save(user);
     }
 
+    /**
+     * Обновляет access токен с использованием refresh токена.
+     *
+     * @param refreshTokenRequest запрос на обновление токена {@link RefreshTokenRequest}
+     * @return объект {@link RefreshTokenResponse}, содержащий новый access токен и refresh токен
+     */
     public RefreshTokenResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
         String refreshToken = refreshTokenRequest.getRefreshToken();
         return refreshTokenService.findByToken(refreshToken)
@@ -82,6 +105,9 @@ public class SecurityService {
                 }).orElseThrow(() -> new RefreshTokenException(refreshToken, "Refresh token не найден"));
     }
 
+    /**
+     * Выполняет выход пользователя, удаляя его refresh токены.
+     */
     public void logout() {
         var currentPrincipal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (currentPrincipal instanceof AppUserDetails userDetails) {

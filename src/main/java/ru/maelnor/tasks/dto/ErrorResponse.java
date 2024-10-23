@@ -6,6 +6,10 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+/**
+ * DTO для передачи информации об ошибках.
+ * Содержит сообщение об ошибке, статус HTTP-ответа и уникальный идентификатор запроса.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

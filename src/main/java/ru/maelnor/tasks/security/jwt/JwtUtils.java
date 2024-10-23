@@ -9,18 +9,36 @@ import ru.maelnor.tasks.security.AppUserDetails;
 import java.time.Duration;
 import java.util.Date;
 
+/**
+ * Утилитный класс для работы с JWT токенами.
+ * Позволяет генерировать, извлекать информацию и валидировать JWT токены.
+ */
 @Component
 @Slf4j
 public class JwtUtils {
+
     @Value("${app.jwt.secret}")
     private String secret;
+
     @Value("${app.jwt.tokenExpiration}")
     private Duration tokenExpiration;
 
+    /**
+     * Генерирует JWT токен на основе данных пользователя.
+     *
+     * @param userDetails объект с деталями пользователя {@link AppUserDetails}
+     * @return сгенерированный JWT токен
+     */
     public String generateToken(AppUserDetails userDetails) {
         return generateTokenFromUserName(userDetails.getUsername());
     }
 
+    /**
+     * Генерирует JWT токен на основе имени пользователя.
+     *
+     * @param username имя пользователя
+     * @return сгенерированный JWT токен
+     */
     public String generateTokenFromUserName(String username) {
         return Jwts.builder()
                 .setSubject(username)
@@ -30,10 +48,22 @@ public class JwtUtils {
                 .compact();
     }
 
+    /**
+     * Извлекает имя пользователя из JWT токена.
+     *
+     * @param token JWT токен
+     * @return имя пользователя, извлеченное из токена
+     */
     public String getUsername(String token) {
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
     }
 
+    /**
+     * Валидирует JWT токен. Проверяет его подпись, формат и срок действия.
+     *
+     * @param token JWT токен
+     * @return {@code true}, если токен валидный, иначе {@code false}
+     */
     public boolean validate(String token) {
         try {
             Jwts.parser().setSigningKey(secret).parseClaimsJws(token);

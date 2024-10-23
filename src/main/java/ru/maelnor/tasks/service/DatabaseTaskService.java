@@ -33,6 +33,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Сервис для работы с задачами, использующий базу данных для хранения и управления задачами.
+ * Поддерживает операции с кэшированием и отправкой сообщений в Kafka.
+ */
 @Service
 @ConditionalOnProperty(name = "repository.type", havingValue = "jpa")
 @EnableCaching
@@ -46,6 +50,12 @@ public class DatabaseTaskService implements TaskService {
     private final CurrentUserService currentUserService;
     private final JpaUserRepository userRepository;
 
+    /**
+     * Возвращает список всех задач в зависимости от ролей пользователя (администратор, менеджер или владелец).
+     * Кэширует результаты для ускорения последующих запросов.
+     *
+     * @return список задач в виде моделей {@link TaskModel}
+     */
     @Override
     public List<TaskModel> getAllTasks() {
         List<TaskModel> tasks;
@@ -61,7 +71,6 @@ public class DatabaseTaskService implements TaskService {
         }
 
         var cache = cacheManager.getCache("tasks");
-        // Складываем задачи из разных запросов в одно место
         if (cache != null) {
             tasks.forEach(task -> cache.put(task.getId(), task));
         } else {
@@ -71,6 +80,13 @@ public class DatabaseTaskService implements TaskService {
         return tasks;
     }
 
+    /**
+     * Добавляет новую задачу и отправляет сообщение в Kafka.
+     * Кэширует добавленную задачу.
+     *
+     * @param taskDto данные задачи для создания
+     * @return созданная задача в виде модели {@link TaskModel}
+     */
     @Override
     @Transactional
     @CachePut(value = "tasks", key = "#result.id")
@@ -85,6 +101,12 @@ public class DatabaseTaskService implements TaskService {
         return result;
     }
 
+    /**
+     * Обновляет существующую задачу и отправляет сообщение в Kafka.
+     * Удаляет задачу из кэша.
+     *
+     * @param taskDto данные задачи для обновления
+     */
     @Override
     @Transactional
     @CacheEvict(value = "tasks", key = "#taskDto.id")
@@ -95,17 +117,22 @@ public class DatabaseTaskService implements TaskService {
         UserEntity userEntity = userRepository.findById(user.getId())
                 .orElseThrow(() -> new AccessDeniedException("Недостаточно прав для обновления задачи"));
 
-        if (user.isAdmin() ||
-                taskEntity.getOwner().getId().equals(user.getId())) {
+        if (user.isAdmin() || taskEntity.getOwner().getId().equals(user.getId())) {
             TaskEntity updatedTask = taskMapper.toEntity(taskDto);
             updatedTask.setOwner(userEntity);
             taskProducer.sendMessage(taskDto, TaskStatus.UPDATED);
             taskRepository.save(updatedTask);
         } else {
-            throw new AccessDeniedException("Недостаточно прав для удаления задачи");
+            throw new AccessDeniedException("Недостаточно прав для обновления задачи");
         }
     }
 
+    /**
+     * Удаляет задачу и отправляет сообщение в Kafka.
+     * Удаляет задачу из кэша.
+     *
+     * @param id идентификатор задачи
+     */
     @Override
     @Transactional
     @CacheEvict(value = "tasks", key = "#id")
@@ -114,8 +141,7 @@ public class DatabaseTaskService implements TaskService {
                 .orElseThrow(() -> new TaskNotFoundException(id));
         CustomUserDetails user = currentUserService.getCurrentUser();
         TaskDto taskDto = taskMapper.toDto(taskEntity);
-        if (user.isAdmin() ||
-                taskEntity.getOwner().getId().equals(user.getId())) {
+        if (user.isAdmin() || taskEntity.getOwner().getId().equals(user.getId())) {
             taskRepository.deleteById(id);
             taskProducer.sendMessage(taskDto, TaskStatus.DELETED);
         } else {
@@ -123,7 +149,13 @@ public class DatabaseTaskService implements TaskService {
         }
     }
 
-
+    /**
+     * Возвращает задачу по идентификатору, если у пользователя есть доступ.
+     * Кэширует результат запроса.
+     *
+     * @param id идентификатор задачи
+     * @return объект {@link Optional}, содержащий задачу, если она найдена
+     */
     @Override
     @Cacheable(value = "tasks", key = "#id")
     public Optional<TaskModel> getTaskById(UUID id) {
@@ -136,18 +168,22 @@ public class DatabaseTaskService implements TaskService {
         TaskEntity taskEntity = taskEntityOptional.get();
         CustomUserDetails user = currentUserService.getCurrentUser();
 
-        if (user.isAdmin() || user.isManager() ||
-                taskEntity.getOwner().getId().equals(user.getId())) {
+        if (user.isAdmin() || user.isManager() || taskEntity.getOwner().getId().equals(user.getId())) {
             return Optional.of(taskMapper.toModel(taskEntity));
         } else {
             throw new AccessDeniedException("Недостаточно прав для просмотра задачи");
         }
     }
 
-
+    /**
+     * Фильтрует задачи на основе параметров фильтрации.
+     * Поддерживает пагинацию и сортировку, кэширует результаты.
+     *
+     * @param taskFilter объект фильтрации {@link TaskFilter}
+     * @return страница задач {@link Page}, удовлетворяющих критериям фильтрации
+     */
     @Override
     public Page<TaskModel> filterBy(TaskFilter taskFilter) {
-
         Page<TaskModel> tasks;
         CustomUserDetails user = currentUserService.getCurrentUser();
         Pageable pageable = PageRequest.of(
@@ -157,19 +193,16 @@ public class DatabaseTaskService implements TaskService {
                 "id"
         );
         if (user.isAdmin() || user.isManager()) {
-            tasks = taskRepository.findAll(TaskSpecification.withFilter(taskFilter),
-                    pageable
-            ).map(taskMapper::toModel);
+            tasks = taskRepository.findAll(TaskSpecification.withFilter(taskFilter), pageable)
+                    .map(taskMapper::toModel);
         } else {
             tasks = taskRepository.findAll(
-                    Specification.where(TaskSpecification.ownedBy(user.getId()))
-                            .and(TaskSpecification.withFilter(taskFilter)),
-                    pageable
-            ).map(taskMapper::toModel);
+                            Specification.where(TaskSpecification.ownedBy(user.getId()))
+                                    .and(TaskSpecification.withFilter(taskFilter)), pageable)
+                    .map(taskMapper::toModel);
         }
 
         var cache = cacheManager.getCache("tasks");
-        // Складываем задачи из разных запросов в одно место
         if (cache != null) {
             tasks.forEach(task -> cache.put(task.getId(), task));
         } else {

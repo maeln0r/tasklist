@@ -8,6 +8,10 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+/**
+ * DTO для передачи информации о задачах.
+ * Используется для создания, обновления и передачи данных о задачах в системе.
+ */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -17,21 +17,43 @@ import java.text.MessageFormat;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Веб-контроллер для управления задачами. Обрабатывает запросы для отображения, создания, редактирования и удаления задач.
+ * Использует шаблоны представления для отображения страниц.
+ */
 @Controller
 @RequestMapping("/tasks")
 public class TaskWebController {
 
     private final TaskService taskService;
 
+    /**
+     * Конструктор для внедрения сервиса управления задачами.
+     *
+     * @param taskService сервис для работы с задачами
+     */
     public TaskWebController(TaskService taskService) {
         this.taskService = taskService;
     }
 
+    /**
+     * Инициализирует разрешенные поля для привязки данных.
+     *
+     * @param binder объект для настройки привязки данных
+     */
     @InitBinder
     protected void initBinder(WebDataBinder binder) {
         binder.setAllowedFields("pageNumber", "pageSize", "completed", "name", "description");
     }
 
+    /**
+     * Отображает список задач с возможностью фильтрации.
+     *
+     * @param model модель для передачи данных в представление
+     * @param taskFilter фильтр задач
+     * @param bindingResult результат валидации фильтра
+     * @return имя представления для отображения списка задач
+     */
     @GetMapping
     public String listTasks(Model model, @Valid TaskFilter taskFilter, BindingResult bindingResult) {
         model.addAttribute("pageTitle", "Список задач");
@@ -40,6 +62,13 @@ public class TaskWebController {
         return "tasks/list";
     }
 
+    /**
+     * Отображает информацию о задаче по её идентификатору.
+     *
+     * @param id идентификатор задачи
+     * @param model модель для передачи данных в представление
+     * @return имя представления для отображения задачи
+     */
     @GetMapping("/view/{id}")
     public String viewTask(@PathVariable UUID id, Model model) {
         Optional<TaskModel> task = taskService.getTaskById(id);
@@ -52,6 +81,12 @@ public class TaskWebController {
         return "tasks/view";
     }
 
+    /**
+     * Отображает форму для добавления новой задачи.
+     *
+     * @param model модель для передачи данных в представление
+     * @return имя представления для отображения формы добавления
+     */
     @GetMapping("/add")
     public String addTaskForm(Model model) {
         model.addAttribute("taskDto", new TaskDto());
@@ -59,6 +94,14 @@ public class TaskWebController {
         return "tasks/add";
     }
 
+    /**
+     * Обрабатывает отправку формы для добавления новой задачи.
+     *
+     * @param model модель для передачи данных в представление
+     * @param dto объект задачи для добавления
+     * @param bindingResult результат валидации данных формы
+     * @return перенаправление на список задач при успешном добавлении или отображение формы при ошибках
+     */
     @PostMapping("/add")
     public String addTask(Model model, @Valid TaskDto dto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -70,6 +113,13 @@ public class TaskWebController {
         return "redirect:/tasks";
     }
 
+    /**
+     * Отображает форму для редактирования существующей задачи.
+     *
+     * @param id идентификатор задачи
+     * @param model модель для передачи данных в представление
+     * @return имя представления для отображения формы редактирования
+     */
     @GetMapping("/edit/{id}")
     public String editTaskForm(@PathVariable UUID id, Model model) {
         Optional<TaskModel> task = taskService.getTaskById(id);
@@ -82,6 +132,15 @@ public class TaskWebController {
         return "tasks/edit";
     }
 
+    /**
+     * Обрабатывает отправку формы для обновления существующей задачи.
+     *
+     * @param model модель для передачи данных в представление
+     * @param id идентификатор задачи
+     * @param dto объект задачи с обновленными данными
+     * @param bindingResult результат валидации данных формы
+     * @return перенаправление на список задач при успешном обновлении или отображение формы при ошибках
+     */
     @PutMapping("/edit/{id}")
     public String updateTask(Model model, @PathVariable UUID id, @Valid TaskDto dto, BindingResult bindingResult) {
         Optional<TaskModel> task = taskService.getTaskById(id);
@@ -105,6 +164,12 @@ public class TaskWebController {
         return "redirect:/tasks";
     }
 
+    /**
+     * Удаляет задачу по её идентификатору.
+     *
+     * @param id идентификатор задачи
+     * @return перенаправление на список задач после успешного удаления
+     */
     @DeleteMapping("/{id}")
     public String deleteTask(@PathVariable UUID id) {
         Optional<TaskModel> task = taskService.getTaskById(id);

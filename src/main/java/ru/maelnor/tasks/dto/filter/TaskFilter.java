@@ -7,6 +7,10 @@ import ru.maelnor.tasks.validation.TaskFilterValid;
 
 import java.util.UUID;
 
+/**
+ * DTO (Data Transfer Object) для фильтрации задач (tasks).
+ * Содержит параметры, которые могут быть использованы для фильтрации списка задач.
+ */
 @Data
 @NoArgsConstructor
 @TaskFilterValid

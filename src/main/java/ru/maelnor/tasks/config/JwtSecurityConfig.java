@@ -21,21 +21,38 @@ import ru.maelnor.tasks.security.jwt.JwtAccessDeniedHandler;
 import ru.maelnor.tasks.security.jwt.JwtAuthenticationEntryPoint;
 import ru.maelnor.tasks.security.jwt.JwtTokenFilter;
 
+/**
+ * Класс конфигурации безопасности с использованием JWT.
+ * Настраивает фильтрацию запросов, провайдер аутентификации и другие
+ * параметры безопасности для приложения.
+ */
 @Configuration
 @EnableMethodSecurity
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "app.auth-type", havingValue = "jwt", matchIfMissing = true)
 public class JwtSecurityConfig {
+
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final JwtTokenFilter jwtTokenFilter;
 
+    /**
+     * Создает бин {@link PasswordEncoder}, который использует BCrypt для кодирования паролей.
+     *
+     * @return экземпляр {@link BCryptPasswordEncoder}
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Создает и настраивает провайдер аутентификации с использованием пользовательских
+     * данных и кодировщика паролей.
+     *
+     * @return настроенный {@link DaoAuthenticationProvider}
+     */
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -44,11 +61,26 @@ public class JwtSecurityConfig {
         return authProvider;
     }
 
+    /**
+     * Создает бин {@link AuthenticationManager}, который управляет аутентификацией в приложении.
+     *
+     * @param authenticationConfiguration конфигурация аутентификации
+     * @return экземпляр {@link AuthenticationManager}
+     * @throws Exception если возникает ошибка при получении менеджера аутентификации
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    /**
+     * Настраивает цепочку фильтров безопасности для обработки HTTP-запросов.
+     * Включает JWT-аутентификацию, управление сессиями, исключение CSRF, а также обработку ошибок аутентификации и доступа.
+     *
+     * @param http объект {@link HttpSecurity} для настройки параметров безопасности
+     * @return настроенный {@link SecurityFilterChain}
+     * @throws Exception если возникает ошибка при настройке безопасности
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((auth) -> auth.requestMatchers("/api/auth/**").permitAll()

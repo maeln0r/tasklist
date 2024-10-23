@@ -10,11 +10,23 @@ import ru.maelnor.tasks.repository.JpaUserRepository;
 
 import java.text.MessageFormat;
 
+/**
+ * Реализация {@link UserDetailsService}, которая загружает данные пользователя из базы данных.
+ * Используется для аутентификации пользователей в Spring Security.
+ */
 @Service
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
+
     private final JpaUserRepository userRepository;
 
+    /**
+     * Загружает данные пользователя по имени пользователя (username).
+     *
+     * @param username имя пользователя для поиска
+     * @return объект {@link UserDetails}, содержащий информацию о пользователе
+     * @throws UsernameNotFoundException если пользователь с указанным именем не найден
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity user = userRepository

@@ -10,12 +10,21 @@ import ru.maelnor.tasks.security.OidcAppUserDetails;
 
 import java.util.*;
 
+/**
+ * Сервис для управления пользователями, включая создание, обновление и преобразование OIDC-пользователей.
+ * Обеспечивает взаимодействие с базой данных пользователей и преобразование ролей пользователей.
+ */
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final JpaUserRepository userRepository;
 
+    /**
+     * Добавляет или обновляет данные пользователя в базе данных.
+     *
+     * @param userEntity сущность пользователя {@link UserEntity}, которая будет добавлена или обновлена
+     */
     public void addOrUpdateUser(UserEntity userEntity) {
         Optional<UserEntity> existingUser = userRepository.findById(userEntity.getId());
 
@@ -30,6 +39,12 @@ public class UserService {
         }
     }
 
+    /**
+     * Находит пользователя по OIDC или создает нового, если он не существует.
+     *
+     * @param oidcUser объект OIDC-пользователя {@link OidcUser}, из которого извлекаются данные
+     * @return сущность пользователя {@link UserEntity}, существующая или созданная
+     */
     public UserEntity findOrCreateUserFromOidc(OidcUser oidcUser) {
         String username = oidcUser.getPreferredUsername();
 
@@ -48,12 +63,23 @@ public class UserService {
         }
     }
 
+    /**
+     * Создает объект пользовательских деталей для OIDC пользователя.
+     *
+     * @param oidcUser объект OIDC-пользователя {@link OidcUser}
+     * @return объект {@link OidcAppUserDetails}, содержащий данные и роли пользователя
+     */
     public OidcAppUserDetails createOidcAppUserDetails(OidcUser oidcUser) {
         Set<RoleType> roles = convertOidcRolesToRoleType(oidcUser);
         return new OidcAppUserDetails(oidcUser, roles);
     }
 
-
+    /**
+     * Преобразует OIDC роли пользователя в роли типа {@link RoleType}.
+     *
+     * @param oidcUser объект OIDC-пользователя {@link OidcUser}
+     * @return набор ролей пользователя {@link Set} типа {@link RoleType}
+     */
     private Set<RoleType> convertOidcRolesToRoleType(OidcUser oidcUser) {
         Set<RoleType> roles = new HashSet<>();
 

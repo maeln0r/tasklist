@@ -17,14 +17,32 @@ import ru.maelnor.tasks.dto.kafka.KafkaTaskMessage;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Класс конфигурации для настройки Kafka в приложении.
+ * Настраивает продюсеров, консумеров и фабрику слушателей Kafka.
+ */
 @EnableKafka
 @Configuration
 public class KafkaConfig {
+
+    /**
+     * URL-адреса серверов Kafka, загружаемые из файла настроек приложения.
+     */
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
+
+    /**
+     * Идентификатор группы консумеров Kafka, загружаемый из файла настроек приложения.
+     */
     @Value("${spring.kafka.consumer.group-id}")
     private String groupId;
 
+    /**
+     * Создает бин фабрики продюсеров Kafka для отправки сообщений с ключами типа {@link String}
+     * и значениями типа {@link KafkaTaskMessage}.
+     *
+     * @return фабрика продюсеров Kafka
+     */
     @Bean
     public ProducerFactory<String, KafkaTaskMessage> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
@@ -34,11 +52,22 @@ public class KafkaConfig {
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
+    /**
+     * Создает бин {@link KafkaTemplate}, используемый для отправки сообщений в Kafka.
+     *
+     * @return настроенный шаблон Kafka
+     */
     @Bean
     public KafkaTemplate<String, KafkaTaskMessage> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 
+    /**
+     * Создает бин фабрики консумеров Kafka для обработки входящих сообщений с ключами типа {@link String}
+     * и значениями типа {@link KafkaTaskMessage}.
+     *
+     * @return фабрика консумеров Kafka
+     */
     @Bean
     public ConsumerFactory<String, KafkaTaskMessage> consumerFactory() {
         Map<String, Object> configProps = new HashMap<>();
@@ -46,10 +75,16 @@ public class KafkaConfig {
         configProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*"); // Разрешаем все пакеты для десериализации
         return new DefaultKafkaConsumerFactory<>(configProps);
     }
 
+    /**
+     * Создает бин фабрики слушателей Kafka для обработки сообщений.
+     * Фабрика использует созданный ранее бин {@link ConsumerFactory}.
+     *
+     * @return фабрика слушателей Kafka
+     */
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, KafkaTaskMessage> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, KafkaTaskMessage> factory =

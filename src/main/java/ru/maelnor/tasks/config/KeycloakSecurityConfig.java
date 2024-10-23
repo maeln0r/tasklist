@@ -4,7 +4,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,15 +25,29 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Класс конфигурации безопасности для интеграции с Keycloak через OpenID Connect (OIDC).
+ * Настраивает фильтры безопасности, маппинг ролей и обработку аутентификации и выхода.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @ConditionalOnProperty(name = "app.auth-type", havingValue = "keycloak", matchIfMissing = true)
 public class KeycloakSecurityConfig {
 
+    /**
+     * Интерфейс для конвертации OIDC-претензий (claims) в коллекцию {@link GrantedAuthority}.
+     * Используется для преобразования ролей из realm_access в GrantedAuthority.
+     */
     interface AuthoritiesConverter extends Converter<Map<String, Object>, Collection<GrantedAuthority>> {
     }
 
+    /**
+     * Создает бин {@link AuthoritiesConverter}, который преобразует претензии (claims) realm_access
+     * в набор ролей пользователя.
+     *
+     * @return объект {@link AuthoritiesConverter}
+     */
     @Bean
     AuthoritiesConverter realmRolesAuthoritiesConverter() {
         return claims -> {
@@ -46,6 +59,13 @@ public class KeycloakSecurityConfig {
         };
     }
 
+    /**
+     * Создает бин для преобразования OIDC-авторитетов (Authorities) в роли, полученные из Keycloak.
+     * Использует {@link OidcUserAuthority} для получения информации о ролях.
+     *
+     * @param realmRolesAuthoritiesConverter конвертер ролей из realm_access
+     * @return {@link GrantedAuthoritiesMapper}, который преобразует роли
+     */
     @Bean
     GrantedAuthoritiesMapper authenticationConverter(
             Converter<Map<String, Object>, Collection<GrantedAuthority>> realmRolesAuthoritiesConverter) {
@@ -56,12 +76,28 @@ public class KeycloakSecurityConfig {
                 .flatMap(roles -> roles.stream()).collect(Collectors.toSet());
     }
 
+    /**
+     * Настраивает цепочку фильтров безопасности для обработки OAuth2 аутентификации и выхода.
+     * Включает настройку успешной аутентификации и обработку успешного выхода из системы с помощью
+     * {@link OidcClientInitiatedLogoutSuccessHandler}.
+     *
+     * @param http                     объект для настройки параметров безопасности
+     * @param clientRegistrationRepository репозиторий для регистрации OAuth2 клиентов
+     * @param successHandler           обработчик успешной аутентификации
+     * @return объект {@link SecurityFilterChain}, который описывает конфигурацию фильтров безопасности
+     * @throws Exception если возникает ошибка при настройке фильтров
+     */
     @Bean
     SecurityFilterChain clientSecurityFilterChain(HttpSecurity http,
                                                   ClientRegistrationRepository clientRegistrationRepository,
                                                   CustomAuthenticationSuccessHandler successHandler) throws Exception {
+        // Настройка входа через OAuth2 с успешной аутентификацией
         http.oauth2Login(oauth2 -> oauth2.successHandler(successHandler));
+
+        // Отключение защиты от CSRF
         http.csrf(AbstractHttpConfigurer::disable);
+
+        // Настройка выхода с использованием OIDC и редиректа после выхода
         http.logout((logout) -> {
             final var logoutSuccessHandler =
                     new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
@@ -69,6 +105,7 @@ public class KeycloakSecurityConfig {
             logout.logoutSuccessHandler(logoutSuccessHandler);
         });
 
+        // Разрешить доступ только аутентифицированным пользователям
         http.authorizeHttpRequests(requests -> {
             requests.anyRequest().authenticated();
         });

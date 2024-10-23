@@ -7,6 +7,10 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+/**
+ * Модель задачи, представляющая данные о задаче.
+ * Содержит идентификатор задачи, её имя, описание и статус завершенности.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
