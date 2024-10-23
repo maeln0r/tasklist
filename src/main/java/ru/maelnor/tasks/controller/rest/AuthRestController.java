@@ -19,8 +19,8 @@ import java.text.MessageFormat;
 @RequestMapping("/api/auth")
 @Tag(name = "Auth", description = "API авторизации")
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "app.auth-type", havingValue = "jwt", matchIfMissing = true)
-public class AuthController {
+@ConditionalOnProperty(name = "app.auth-type", havingValue = "jwt")
+public class AuthRestController {
     private final SecurityService securityService;
 
     @PostMapping("/signin")

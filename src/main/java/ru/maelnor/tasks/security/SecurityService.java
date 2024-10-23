@@ -27,7 +27,7 @@ import java.util.UUID;
  */
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "app.auth-type", havingValue = "jwt", matchIfMissing = true)
+@ConditionalOnProperty(name = "app.auth-type", havingValue = "jwt")
 public class SecurityService {
 
     private final AuthenticationManager authenticationManager;

@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@ConditionalOnProperty(name = "app.auth-type", havingValue = "keycloak", matchIfMissing = true)
+@ConditionalOnProperty(name = "app.auth-type", havingValue = "keycloak")
 public class KeycloakSecurityConfig {
 
     /**

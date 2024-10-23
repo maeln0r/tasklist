@@ -29,7 +29,7 @@ import ru.maelnor.tasks.security.jwt.JwtTokenFilter;
 @Configuration
 @EnableMethodSecurity
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "app.auth-type", havingValue = "jwt", matchIfMissing = true)
+@ConditionalOnProperty(name = "app.auth-type", havingValue = "jwt")
 public class JwtSecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
@@ -44,7 +44,7 @@ public class JwtSecurityConfig {
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(12);
     }
 
     /**
@@ -83,16 +83,34 @@ public class JwtSecurityConfig {
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests((auth) -> auth.requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().authenticated()
+        http.authorizeHttpRequests((auth) -> auth.requestMatchers(
+                                        "/auth-static/**",
+                                        "/api/auth/**",
+                                        "/login",
+                                        "/perform_login",
+                                        "/logout"
+                                ).permitAll()
+                                .anyRequest().authenticated()
                 )
                 .exceptionHandling(configurer -> configurer
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                         .accessDeniedHandler(jwtAccessDeniedHandler)
                 )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .loginProcessingUrl("/perform_login")
+                        .defaultSuccessUrl("/tasks", true)
+                        .failureUrl("/login?error=true")
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout=true")
+                        .permitAll()
+                )
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(Customizer.withDefaults())
-                .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

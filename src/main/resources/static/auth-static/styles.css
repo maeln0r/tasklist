@@ -1,0 +1,80 @@
+/* Основные стили для всей страницы */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    height: 100vh;
+    display: table;
+    width: 100%;
+}
+
+/* Контейнер для формы логина, центрирование с помощью display: table-cell */
+.login-container {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+}
+
+/* Стиль для блока логина */
+.login-box {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    margin: 0 auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Заголовок формы */
+.login-box h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
+}
+
+/* Группы элементов формы */
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #555;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    color: #333;
+    box-sizing: border-box;
+}
+
+/* Стиль для кнопки */
+.btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff; /* Используем основной цвет приложения */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background-color: #0056b3; /* Темнее при наведении */
+}
+
+/* Сообщение об ошибке */
+.error-message {
+    color: red;
+    text-align: center;
+    font-size: 14px;
+    margin-top: 10px;
+}

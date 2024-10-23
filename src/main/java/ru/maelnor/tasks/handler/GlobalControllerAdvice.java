@@ -27,7 +27,9 @@ public class GlobalControllerAdvice {
     @ModelAttribute
     public void addUserInfoToModel(Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication.getPrincipal() instanceof String && "anonymousUser".equals(authentication.getPrincipal()))) {
             String username = currentUser.getCurrentUser().getUsername();
             model.addAttribute("username", username); // Добавление имени пользователя в модель
         }
