@@ -11,6 +11,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -34,6 +36,16 @@ import java.util.stream.Stream;
 @EnableMethodSecurity
 @ConditionalOnProperty(name = "app.auth-type", havingValue = "keycloak")
 public class KeycloakSecurityConfig {
+
+    /**
+     * Создает бин {@link PasswordEncoder}, который использует BCrypt для кодирования паролей.
+     *
+     * @return экземпляр {@link BCryptPasswordEncoder}
+     */
+    @Bean
+    public PasswordEncoder oidcPasswordEncoder() {
+        return new BCryptPasswordEncoder(12);
+    }
 
     /**
      * Интерфейс для конвертации OIDC-претензий (claims) в коллекцию {@link GrantedAuthority}.
