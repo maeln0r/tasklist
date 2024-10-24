@@ -13,18 +13,17 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-import ru.maelnor.tasks.dto.TaskDto;
 import ru.maelnor.tasks.entity.RoleType;
+import ru.maelnor.tasks.entity.TaskEntity;
 import ru.maelnor.tasks.entity.UserEntity;
 import ru.maelnor.tasks.repository.JpaTaskRepository;
 import ru.maelnor.tasks.repository.JpaUserRepository;
-import ru.maelnor.tasks.security.UserDetailsServiceImpl;
+import ru.maelnor.tasks.repository.TaskRepository;
 import ru.maelnor.tasks.service.TaskService;
 
 import java.util.HashSet;
@@ -35,6 +34,9 @@ import java.util.UUID;
 @AutoConfigureMockMvc
 @Testcontainers
 public class AbstractTest {
+    protected UserEntity user;
+    protected UserEntity admin;
+    protected TaskEntity task;
 
     @Container
     protected static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"))
@@ -67,9 +69,6 @@ public class AbstractTest {
     protected MockMvc mockMvc;
 
     @Autowired
-    protected TaskService taskService;
-
-    @Autowired
     protected JpaTaskRepository taskRepository;
 
     @Autowired
@@ -79,12 +78,12 @@ public class AbstractTest {
     protected PasswordEncoder passwordEncoder;
 
     @Autowired
-    protected UserDetailsServiceImpl userDetailsService;
+    protected TaskService taskService;
 
     @BeforeEach
     @Commit
     void setUp() {
-        var user = UserEntity.builder()
+        user = UserEntity.builder()
                 .id(UUID.randomUUID())
                 .username("user")
                 .password(passwordEncoder.encode("user"))
@@ -96,7 +95,7 @@ public class AbstractTest {
         }});
         userRepository.save(user);
 
-        var admin = UserEntity.builder()
+        admin = UserEntity.builder()
                 .id(UUID.randomUUID())
                 .username("admin")
                 .password(passwordEncoder.encode("admin"))
@@ -111,15 +110,18 @@ public class AbstractTest {
         userRepository.save(admin);
 
 
-        TaskDto dto = new TaskDto();
-        dto.setId(UUID.randomUUID());
-        dto.setName("Test Task");
-        dto.setCompleted(false);
-        taskService.addTask(dto);
+        task = new TaskEntity();
+        task.setId(UUID.randomUUID());
+        task.setName("Test Task");
+        task.setCompleted(false);
+        task.setDescription("Test Description");
+        task.setOwner(user);
+        taskRepository.save(task);
     }
 
     @AfterEach
     void tearDown() {
         taskRepository.deleteAll();
+        userRepository.deleteAll();
     }
 }

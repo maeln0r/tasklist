@@ -1,21 +1,15 @@
 package ru.maelnor.tasks.controller.web;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.context.support.TestExecutionEvent;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import ru.maelnor.tasks.dto.TaskDto;
+import ru.maelnor.tasks.AbstractTest;
 import ru.maelnor.tasks.exception.TaskNotFoundException;
-import ru.maelnor.tasks.service.TaskService;
 
 import java.util.UUID;
 
@@ -27,43 +21,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Testcontainers
 @Transactional
-public class TaskEntityWebControllerTest {
-
-    @Container
-    private static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest")
-            .withDatabaseName("testdb")
-            .withUsername("testuser")
-            .withPassword("testpass");
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private TaskService taskService;
-
-    @DynamicPropertySource
-    static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgresContainer::getUsername);
-        registry.add("spring.datasource.password", postgresContainer::getPassword);
-    }
-
-    @BeforeEach
-    void setUp() {
-        TaskDto dto = new TaskDto();
-        dto.setId(null);
-        dto.setName("Test Task");
-        dto.setCompleted(false);
-        taskService.addTask(dto);
-    }
+@WithUserDetails(value = "user", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+public class TaskEntityWebControllerTest extends AbstractTest {
 
     @Test
     void shouldDisplayListOfTasks() throws Exception {
         mockMvc.perform(get("/tasks"))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("tasks"))
-                .andExpect(model().attribute("pageTitle", "Список дел"))
-                .andExpect(view().name("layout :: mainPage(page='tasks/list', fragment='content')"));
+                .andExpect(model().attributeExists("page"))
+                .andExpect(model().attribute("pageTitle", "Список задач"))
+                .andExpect(view().name("tasks/list"));
     }
 
     @Test
@@ -72,7 +39,7 @@ public class TaskEntityWebControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("taskDto"))
                 .andExpect(model().attribute("pageTitle", "Добавление"))
-                .andExpect(view().name("layout :: mainPage(page='tasks/add', fragment='content')"));
+                .andExpect(view().name("tasks/add"));
     }
 
     @Test
@@ -90,7 +57,7 @@ public class TaskEntityWebControllerTest {
                         .param("name", "")) // Пустое имя вызывает ошибку валидации
                 .andExpect(status().isOk())
                 .andExpect(model().attributeHasFieldErrors("taskDto", "name"))
-                .andExpect(view().name("layout :: mainPage(page='tasks/add', fragment='content')"));
+                .andExpect(view().name("tasks/add"));
     }
 
     @Test
@@ -100,7 +67,7 @@ public class TaskEntityWebControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("taskDto"))
                 .andExpect(model().attribute("pageTitle", "Редактирование задачи с id: " + taskId))
-                .andExpect(view().name("layout :: mainPage(page='tasks/edit', fragment='content')"));
+                .andExpect(view().name("tasks/edit"));
     }
 
     @Test
@@ -129,7 +96,7 @@ public class TaskEntityWebControllerTest {
                         .param("name", "")) // Пустое имя вызывает ошибку валидации
                 .andExpect(status().isOk())
                 .andExpect(model().attributeHasFieldErrors("taskDto", "name"))
-                .andExpect(view().name("layout :: mainPage(page='tasks/edit', fragment='content')"));
+                .andExpect(view().name("tasks/edit"));
     }
 
     @Test

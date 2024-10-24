@@ -2,7 +2,7 @@
 <#import "/base.ftl" as base />
 
 <@base.layout>
-    <h2>${pageTitle}</h2>
+    <h2>${pageTitle!''}</h2>
     <form action="/tasks/edit/${taskDto.id}" method="post" class="taskEntity-form task-form-container">
         <!-- Поле для имени задачи -->
         <input type="hidden" name="_method" value="put"/>

@@ -38,7 +38,7 @@ import java.util.UUID;
  * Поддерживает операции с кэшированием и отправкой сообщений в Kafka.
  */
 @Service
-@ConditionalOnProperty(name = "repository.type", havingValue = "jpa")
+@ConditionalOnProperty(name = "repository.type", havingValue = "jpa", matchIfMissing = true )
 @EnableCaching
 @Slf4j
 @RequiredArgsConstructor

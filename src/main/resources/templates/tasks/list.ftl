@@ -5,7 +5,7 @@
 <#import "/fragments/pagination.ftl" as paginationFragments />
 
 <@base.layout>
-    <h2>${pageTitle}</h2>
+    <h2>${pageTitle!''}</h2>
 
     <!-- Форма фильтрации -->
     <@filterFragments.filterForm action="/tasks" taskFilter=taskFilter />

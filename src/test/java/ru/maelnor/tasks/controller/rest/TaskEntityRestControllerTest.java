@@ -9,12 +9,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.TestExecutionEvent;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.maelnor.tasks.AbstractTest;
-import ru.maelnor.tasks.security.UserDetailsServiceImpl;
 
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -27,10 +25,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
+@WithUserDetails(value = "user", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 public class TaskEntityRestControllerTest extends AbstractTest {
 
     @Test
-    @WithUserDetails(value = "user", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
     void shouldReturnAllTasks() throws Exception {
         mockMvc.perform(get("/api/tasks"))
                 .andExpect(status().isOk())
@@ -46,6 +44,7 @@ public class TaskEntityRestControllerTest extends AbstractTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void shouldCreateNewTask() throws Exception {
         mockMvc.perform(post("/api/tasks")
                         .contentType("application/json")
@@ -80,6 +79,7 @@ public class TaskEntityRestControllerTest extends AbstractTest {
 
     @ParameterizedTest
     @MethodSource("provideTasksForTesting")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void shouldValidateTaskNameWhenCreate(String name, boolean shouldPass) throws Exception {
         String taskJson = "{\"name\":\"" + name + "\",\"completed\":false}";
 
@@ -99,11 +99,12 @@ public class TaskEntityRestControllerTest extends AbstractTest {
 
     @ParameterizedTest
     @MethodSource("provideTasksForTesting")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void shouldValidateTaskNameWhenUpdate(String name, boolean shouldPass) throws Exception {
         String taskJson = "{\"name\":\"" + name + "\",\"completed\":false}";
 
         if (!shouldPass) {
-            mockMvc.perform(put("/api/tasks/1")
+            mockMvc.perform(put("/api/tasks/" + task.getId())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(taskJson))
                     .andExpect(status().isBadRequest());

@@ -15,7 +15,7 @@ import java.util.UUID;
  * Позволяет выполнять CRUD-операции и строить запросы с помощью спецификаций.
  */
 @Repository
-@ConditionalOnProperty(name = "repository.type", havingValue = "jpa")
+@ConditionalOnProperty(name = "repository.type", havingValue = "jpa", matchIfMissing = true)
 public interface JpaTaskRepository extends JpaRepository<TaskEntity, UUID>, JpaSpecificationExecutor<TaskEntity> {
 
     /**

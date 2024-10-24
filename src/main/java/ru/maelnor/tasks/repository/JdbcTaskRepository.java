@@ -5,6 +5,7 @@ import ru.maelnor.tasks.entity.TaskEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.maelnor.tasks.entity.UserEntity;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +17,7 @@ import java.util.UUID;
  * Репозиторий активируется, если свойство "repository.type" установлено в "jdbc".
  */
 @Repository
-@ConditionalOnProperty(name = "repository.type", havingValue = "jdbc", matchIfMissing = true)
+@ConditionalOnProperty(name = "repository.type", havingValue = "jdbc")
 @Deprecated
 public class JdbcTaskRepository implements TaskRepository {
 
@@ -38,7 +39,13 @@ public class JdbcTaskRepository implements TaskRepository {
      */
     @Override
     public List<TaskEntity> findAll() {
-        String sql = "SELECT * FROM tasks";
+        String sql = """
+                SELECT\s
+                    t.id, t.name, t.completed, t.description, t.created_at, t.updated_at,
+                    u.id as owner_id, u.username as owner_username, u.email as owner_email
+                FROM tasks t
+                JOIN users u ON t.owner_id = u.id
+               \s""";
         return jdbcTemplate.query(sql, taskRowMapper());
     }
 
@@ -49,9 +56,20 @@ public class JdbcTaskRepository implements TaskRepository {
      */
     @Override
     public void save(TaskEntity taskEntity) {
-        String sql = "INSERT INTO tasks (name, completed) VALUES (?, ?)";
-        jdbcTemplate.update(sql, taskEntity.getName(), taskEntity.isCompleted());
+        String sql = "INSERT INTO tasks (id, name, completed, description, created_at, updated_at, owner_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        jdbcTemplate.update(sql,
+                taskEntity.getId(), // UUID задачи
+                taskEntity.getName(), // Название задачи
+                taskEntity.isCompleted(), // Статус выполнения
+                taskEntity.getDescription(), // Описание задачи
+                taskEntity.getCreatedAt(), // Время создания
+                taskEntity.getUpdatedAt(), // Время обновления
+                taskEntity.getOwner().getId() // Владелец задачи (owner_id)
+        );
     }
+
 
     /**
      * Обновляет существующую задачу в базе данных.
@@ -60,9 +78,18 @@ public class JdbcTaskRepository implements TaskRepository {
      */
     @Override
     public void update(TaskEntity taskEntity) {
-        String sql = "UPDATE tasks SET name = ?, completed = ? WHERE id = ?";
-        jdbcTemplate.update(sql, taskEntity.getName(), taskEntity.isCompleted(), taskEntity.getId());
+        String sql = "UPDATE tasks SET name = ?, completed = ?, description = ?, updated_at = ?, owner_id = ? WHERE id = ?";
+
+        jdbcTemplate.update(sql,
+                taskEntity.getName(), // Название задачи
+                taskEntity.isCompleted(), // Статус выполнения
+                taskEntity.getDescription(), // Описание задачи
+                taskEntity.getUpdatedAt(), // Время обновления
+                taskEntity.getOwner().getId(), // Владелец задачи
+                taskEntity.getId() // UUID задачи
+        );
     }
+
 
     /**
      * Удаляет задачу из базы данных по её идентификатору.
@@ -92,7 +119,14 @@ public class JdbcTaskRepository implements TaskRepository {
      */
     @Override
     public Optional<TaskEntity> findById(UUID id) {
-        String sql = "SELECT * FROM tasks WHERE id = ?";
+        String sql = """
+                SELECT\s
+                    t.id, t.name, t.completed, t.description, t.created_at, t.updated_at,
+                    u.id as owner_id, u.username as owner_username, u.email as owner_email
+                FROM tasks t
+                JOIN users u ON t.owner_id = u.id
+                WHERE t.id = ?
+               \s""";
         List<TaskEntity> taskEntities = jdbcTemplate.query(sql, taskRowMapper(), id);
         return taskEntities.stream().findFirst();
     }
@@ -108,7 +142,21 @@ public class JdbcTaskRepository implements TaskRepository {
             taskEntity.setId(UUID.fromString(rs.getString("id")));
             taskEntity.setName(rs.getString("name"));
             taskEntity.setCompleted(rs.getBoolean("completed"));
+            taskEntity.setDescription(rs.getString("description"));
+
+            // Установка временных меток
+            taskEntity.setCreatedAt(rs.getTimestamp("created_at"));
+            taskEntity.setUpdatedAt(rs.getTimestamp("updated_at"));
+
+            // Извлечение владельца задачи (UserEntity)
+            UserEntity owner = new UserEntity();
+            owner.setId(UUID.fromString(rs.getString("owner_id")));
+            owner.setUsername(rs.getString("owner_username"));
+            owner.setEmail(rs.getString("owner_email"));
+            taskEntity.setOwner(owner);
+
             return taskEntity;
         };
     }
+
 }

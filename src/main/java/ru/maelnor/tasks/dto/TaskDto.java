@@ -3,6 +3,7 @@ package ru.maelnor.tasks.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
+@EqualsAndHashCode
 public class TaskDto {
     private UUID id;
     @NotBlank(message = "Имя не должно быть пустым")

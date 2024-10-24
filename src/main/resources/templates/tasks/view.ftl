@@ -2,7 +2,7 @@
 <#import "/base.ftl" as base />
 
 <@base.layout>
-    <h2>${pageTitle}</h2>
+    <h2>${pageTitle!''}</h2>
 
     <!-- Основная информация о задаче -->
     <div class="task-view-container">

@@ -22,7 +22,7 @@ import java.util.UUID;
  * Этот класс помечен как устаревший, так как использует JDBC, и рекомендуется переходить на JPA.
  */
 @Service
-@ConditionalOnProperty(name = "repository.type", havingValue = "jdbc", matchIfMissing = true)
+@ConditionalOnProperty(name = "repository.type", havingValue = "jdbc")
 @Deprecated
 public class TaskServiceImpl implements TaskService {
 

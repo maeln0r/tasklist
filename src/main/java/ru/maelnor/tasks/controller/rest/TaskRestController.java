@@ -75,7 +75,7 @@ public class TaskRestController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @GetMapping("/{id:\\d+}")
+    @GetMapping("/{id}")
     public ResponseEntity<TaskDto> getTaskById(@Parameter(description = "ID задачи", required = true) @PathVariable UUID id) {
         return taskService.getTaskById(id)
                 .map(TaskMapper.INSTANCE::toDto)
@@ -110,7 +110,7 @@ public class TaskRestController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @PutMapping("/{id:\\d+}")
+    @PutMapping("/{id}")
     public ResponseEntity<TaskDto> updateTask(@Parameter(description = "ID задачи", required = true) @PathVariable UUID id,
                                               @Valid @RequestBody TaskDto taskDto) {
         Optional<TaskDto> updatedTask = taskService.getTaskById(id)
@@ -132,7 +132,7 @@ public class TaskRestController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @DeleteMapping("/{id:\\d+}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<TaskDto> deleteTask(@Parameter(description = "ID задачи", required = true) @PathVariable UUID id, @AuthenticationPrincipal UserEntity currentUser) {
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
