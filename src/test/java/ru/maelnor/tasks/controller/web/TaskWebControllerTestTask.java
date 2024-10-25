@@ -5,10 +5,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import ru.maelnor.tasks.AbstractTest;
+import ru.maelnor.tasks.TaskAbstractTest;
 import ru.maelnor.tasks.exception.TaskNotFoundException;
 
 import java.util.UUID;
@@ -22,7 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @Transactional
 @WithUserDetails(value = "user", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
-public class TaskEntityWebControllerTest extends AbstractTest {
+@ActiveProfiles("test")
+public class TaskWebControllerTestTask extends TaskAbstractTest {
 
     @Test
     void shouldDisplayListOfTasks() throws Exception {

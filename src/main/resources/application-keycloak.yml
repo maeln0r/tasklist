@@ -1,0 +1,16 @@
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          tasklist-keycloak:
+            issuer-uri: http://host.docker.internal:8080/realms/tasklist-keycloak
+        registration:
+          keycloak:
+            provider: tasklist-keycloak
+            authorization-grant-type: authorization_code
+            client-id: tasklist-keycloak-confidential
+            client-secret: 6qT92pg69IelZSSGNMuOOCWPB5oFpV1u
+            scope: openid
+app:
+  auth-type: keycloak

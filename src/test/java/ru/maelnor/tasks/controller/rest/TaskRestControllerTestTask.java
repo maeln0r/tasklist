@@ -11,8 +11,9 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import ru.maelnor.tasks.AbstractTest;
+import ru.maelnor.tasks.TaskAbstractTest;
 
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -26,7 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Testcontainers
 @WithUserDetails(value = "user", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
-public class TaskEntityRestControllerTest extends AbstractTest {
+@ActiveProfiles("test")
+public class TaskRestControllerTestTask extends TaskAbstractTest {
 
     @Test
     void shouldReturnAllTasks() throws Exception {

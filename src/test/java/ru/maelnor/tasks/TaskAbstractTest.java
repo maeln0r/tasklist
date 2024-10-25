@@ -23,7 +23,6 @@ import ru.maelnor.tasks.entity.TaskEntity;
 import ru.maelnor.tasks.entity.UserEntity;
 import ru.maelnor.tasks.repository.JpaTaskRepository;
 import ru.maelnor.tasks.repository.JpaUserRepository;
-import ru.maelnor.tasks.repository.TaskRepository;
 import ru.maelnor.tasks.service.TaskService;
 
 import java.util.HashSet;
@@ -33,7 +32,7 @@ import java.util.UUID;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
-public class AbstractTest {
+public class TaskAbstractTest {
     protected UserEntity user;
     protected UserEntity admin;
     protected TaskEntity task;

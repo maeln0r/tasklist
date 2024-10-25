@@ -31,10 +31,6 @@ public class AuthWebController {
             // Аутентифицируем пользователя с помощью SecurityService
             AuthResponse authResponse = securityService.authenticate(loginRequest);
 
-            // Сохраняем JWT токен и refresh токен в model для передачи на фронт
-            model.addAttribute("token", authResponse.getToken());
-            model.addAttribute("refreshToken", authResponse.getRefreshToken());
-
             // Переход на защищённую страницу после успешного входа
             return "redirect:/tasks";
         } catch (Exception e) {

@@ -55,7 +55,7 @@ public class UserService {
             UserEntity userEntity = userEntityOptional.get();
             CustomUserDetails currentUser = currentUserService.getCurrentUser();
 
-            if (currentUser.isAdmin() || currentUser.isManager() || userEntity.getId().equals(currentUser.getId())) {
+            if (currentUser.isAdmin() || userEntity.getId().equals(currentUser.getId())) {
                 userEntity.setPassword(passwordEncoder.encode(password));
                 userRepository.save(userEntity);
             } else {
