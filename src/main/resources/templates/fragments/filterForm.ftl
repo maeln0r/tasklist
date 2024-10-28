@@ -1,5 +1,6 @@
 <#macro filterForm action taskFilter>
     <form action="${action}" method="get" class="filter-form">
+        <input type="hidden" name="pageNumber" value="${taskFilter.pageSize!0}">
         <div class="form-group">
             <label for="name">Имя задачи:</label>
             <input type="text" id="name" name="name" value="${taskFilter.name!}" class="form-control"/>
@@ -8,8 +9,12 @@
             <label for="completed">Статус:</label>
             <select id="completed" name="completed" class="form-control">
                 <option value="">Все</option>
-                <option value="yes" <#if taskFilter.completed?? && taskFilter.completed?string == "yes">selected</#if>>Завершены</option>
-                <option value="no" <#if taskFilter.completed?? && taskFilter.completed?string == "no">selected</#if>>Не завершены</option>
+                <option value="yes" <#if taskFilter.completed?? && taskFilter.completed?string == "yes">selected</#if>>
+                    Завершены
+                </option>
+                <option value="no" <#if taskFilter.completed?? && taskFilter.completed?string == "no">selected</#if>>Не
+                    завершены
+                </option>
             </select>
         </div>
         <div class="form-group">
@@ -21,5 +26,12 @@
             </select>
         </div>
         <button type="submit" class="btn btn-primary">Применить фильтр</button>
+        <#if filterError??>
+            <div class="alert alert-error">
+                <#list filterError as error>
+                    <p>${error}</p>
+                </#list>
+            </div>
+        </#if>
     </form>
 </#macro>

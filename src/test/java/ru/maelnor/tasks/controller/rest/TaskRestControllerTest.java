@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @WithUserDetails(value = "user", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 @ActiveProfiles("test")
-public class TaskRestControllerTestTask extends TaskAbstractTest {
+public class TaskRestControllerTest extends TaskAbstractTest {
 
     @Test
     void shouldReturnAllTasks() throws Exception {

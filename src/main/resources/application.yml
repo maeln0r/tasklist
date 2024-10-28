@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev, jwt # По умолчанию активный профиль - dev
+    active: dev, keycloak # По умолчанию активный профиль - dev
   mvc:
     hiddenmethod:
       filter:

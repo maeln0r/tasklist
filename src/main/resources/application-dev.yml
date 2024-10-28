@@ -40,4 +40,3 @@ app:
     secret: "taskSecretKey"
     tokenExpiration: 3m
     refreshTokenExpiration: 30m
-  auth-type: keycloak

@@ -20,7 +20,7 @@
         </tr>
         </thead>
         <tbody>
-        <#if page.content?? && (page.content?size > 0)>
+        <#if page?? && page.content?? && (page.content?size > 0)>
             <#list page.content as taskEntity>
                 <tr>
                     <td><a href="/tasks/view/${taskEntity.id}" class="task-link">${taskEntity.name}</a></td>
@@ -45,14 +45,15 @@
         </#if>
         </tbody>
     </table>
-
-    <!-- Пагинация -->
-    <@paginationFragments.pagination
-    currentPage=page.number!0
-    totalPages=page.totalPages!1
-    pageSize=page.size!10
-    baseUrl="/tasks"
-    queryParams="&name=${taskFilter.name!}&completed=${taskFilter.completed!}"
-    />
+    <#if page?? && page.content?? && (page.content?size > 0)>
+        <!-- Пагинация -->
+        <@paginationFragments.pagination
+        currentPage=page.number!0
+        totalPages=page.totalPages!1
+        pageSize=page.size!10
+        baseUrl="/tasks"
+        queryParams="&name=${taskFilter.name!}&completed=${taskFilter.completed!}"
+        />
+    </#if>
 </@base.layout>
 

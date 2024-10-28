@@ -83,6 +83,15 @@ body {
     box-sizing: border-box;
 }
 
+.filter-form .alert.alert-error p {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.filter-form button {
+    margin-top: 25px;
+}
+
 /* Таблицы */
 .task-table {
     width: 100%;

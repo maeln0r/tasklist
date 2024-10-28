@@ -1,7 +1,9 @@
 package ru.maelnor.tasks;
 
 import com.redis.testcontainers.RedisContainer;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.Commit;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -32,10 +35,14 @@ import java.util.UUID;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
+// Без очистки контекста между тестами, redis помирает
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TaskAbstractTest {
     protected UserEntity user;
+    protected UserEntity manager;
     protected UserEntity admin;
     protected TaskEntity task;
+    protected TaskEntity adminTask;
 
     @Container
     protected static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"))
@@ -92,7 +99,22 @@ public class TaskAbstractTest {
         user.setRoles(new HashSet<>() {{
             add(RoleType.ROLE_USER);
         }});
+
         userRepository.save(user);
+
+        manager = UserEntity.builder()
+                .id(UUID.randomUUID())
+                .username("manager")
+                .password(passwordEncoder.encode("manager"))
+                .email("manager")
+                .build();
+
+        manager.setRoles(new HashSet<>() {{
+            add(RoleType.ROLE_USER);
+            add(RoleType.ROLE_MANAGER);
+        }});
+
+        userRepository.save(manager);
 
         admin = UserEntity.builder()
                 .id(UUID.randomUUID())
@@ -108,14 +130,21 @@ public class TaskAbstractTest {
 
         userRepository.save(admin);
 
-
         task = new TaskEntity();
         task.setId(UUID.randomUUID());
         task.setName("Test Task");
         task.setCompleted(false);
         task.setDescription("Test Description");
         task.setOwner(user);
-        taskRepository.save(task);
+        task = taskRepository.save(task);
+
+        adminTask = new TaskEntity();
+        adminTask.setId(UUID.randomUUID());
+        adminTask.setName("Admin Test Task");
+        adminTask.setCompleted(false);
+        adminTask.setDescription("Admin Test Description");
+        adminTask.setOwner(admin);
+        adminTask = taskRepository.save(adminTask);
     }
 
     @AfterEach

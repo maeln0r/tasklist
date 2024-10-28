@@ -1,7 +1,9 @@
 package ru.maelnor.tasks;
 
 import com.redis.testcontainers.RedisContainer;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.test.annotation.Commit;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -39,6 +42,8 @@ import java.util.UUID;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
+// Без очистки контекста между тестами, redis помирает
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class UserAbstractTest {
     protected UserEntity user;
     protected UserEntity manager;
@@ -129,5 +134,15 @@ public class UserAbstractTest {
     @AfterEach
     void tearDown() {
         userRepository.deleteAll();
+    }
+
+    @BeforeAll
+    public static void startContainer() {
+        redisContainer.start();
+    }
+
+    @AfterAll
+    public static void stopContainer() {
+        redisContainer.stop();
     }
 }

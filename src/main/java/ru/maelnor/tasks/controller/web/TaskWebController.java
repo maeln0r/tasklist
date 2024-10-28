@@ -1,14 +1,17 @@
 package ru.maelnor.tasks.controller.web;
 
 import jakarta.validation.Valid;
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import ru.maelnor.tasks.dto.TaskDto;
-import ru.maelnor.tasks.exception.TaskNotFoundException;
 import ru.maelnor.tasks.dto.filter.TaskFilter;
+import ru.maelnor.tasks.exception.TaskNotFoundException;
 import ru.maelnor.tasks.mapper.TaskMapper;
 import ru.maelnor.tasks.model.TaskModel;
 import ru.maelnor.tasks.service.TaskService;
@@ -43,32 +46,50 @@ public class TaskWebController {
      */
     @InitBinder
     protected void initBinder(WebDataBinder binder) {
-        binder.setAllowedFields("pageNumber", "pageSize", "completed", "name", "description");
+        binder.setAllowedFields("pageNumber", "pageSize", "completed", "name", "description", "ownerId");
     }
 
     /**
      * Отображает список задач с возможностью фильтрации.
      *
-     * @param model модель для передачи данных в представление
-     * @param taskFilter фильтр задач
+     * @param model         модель для передачи данных в представление
+     * @param taskFilter    фильтр задач
      * @param bindingResult результат валидации фильтра
      * @return имя представления для отображения списка задач
      */
     @GetMapping
     public String listTasks(Model model, @Valid TaskFilter taskFilter, BindingResult bindingResult) {
         model.addAttribute("pageTitle", "Список задач");
-        model.addAttribute("page", taskService.filterBy(taskFilter));
         model.addAttribute("taskFilter", taskFilter);
+
+        boolean filterNotEmpty = FieldUtils.getAllFieldsList(TaskFilter.class).stream()
+                .anyMatch(field -> {
+                    field.setAccessible(true);
+                    try {
+                        Object value = field.get(taskFilter);
+                        return value != null && (!(value instanceof String) || !((String) value).isEmpty());
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException("Ошибка доступа к полю: " + field.getName(), e);
+                    }
+                });
+
+        if (filterNotEmpty && bindingResult.hasErrors()) {
+            model.addAttribute("filterError", bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).toList());
+            return "tasks/list";
+        }
+
+        model.addAttribute("page", taskService.filterBy(taskFilter));
         return "tasks/list";
     }
 
     /**
      * Отображает информацию о задаче по её идентификатору.
      *
-     * @param id идентификатор задачи
+     * @param id    идентификатор задачи
      * @param model модель для передачи данных в представление
      * @return имя представления для отображения задачи
      */
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER') or @taskPermissionEvaluator.isTaskOwner(#id)")
     @GetMapping("/view/{id}")
     public String viewTask(@PathVariable UUID id, Model model) {
         Optional<TaskModel> task = taskService.getTaskById(id);
@@ -97,8 +118,8 @@ public class TaskWebController {
     /**
      * Обрабатывает отправку формы для добавления новой задачи.
      *
-     * @param model модель для передачи данных в представление
-     * @param dto объект задачи для добавления
+     * @param model         модель для передачи данных в представление
+     * @param dto           объект задачи для добавления
      * @param bindingResult результат валидации данных формы
      * @return перенаправление на список задач при успешном добавлении или отображение формы при ошибках
      */
@@ -116,10 +137,11 @@ public class TaskWebController {
     /**
      * Отображает форму для редактирования существующей задачи.
      *
-     * @param id идентификатор задачи
+     * @param id    идентификатор задачи
      * @param model модель для передачи данных в представление
      * @return имя представления для отображения формы редактирования
      */
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @taskPermissionEvaluator.isTaskOwner(#id)")
     @GetMapping("/edit/{id}")
     public String editTaskForm(@PathVariable UUID id, Model model) {
         Optional<TaskModel> task = taskService.getTaskById(id);
@@ -135,9 +157,9 @@ public class TaskWebController {
     /**
      * Обрабатывает отправку формы для обновления существующей задачи.
      *
-     * @param model модель для передачи данных в представление
-     * @param id идентификатор задачи
-     * @param dto объект задачи с обновленными данными
+     * @param model         модель для передачи данных в представление
+     * @param id            идентификатор задачи
+     * @param dto           объект задачи с обновленными данными
      * @param bindingResult результат валидации данных формы
      * @return перенаправление на список задач при успешном обновлении или отображение формы при ошибках
      */
