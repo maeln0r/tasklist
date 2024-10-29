@@ -2,7 +2,7 @@ package ru.maelnor.tasks.controller.web;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.reflect.FieldUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,12 +18,10 @@ import ru.maelnor.tasks.mapper.TaskFilterMapper;
 import ru.maelnor.tasks.mapper.TaskMapper;
 import ru.maelnor.tasks.model.TaskFilterModel;
 import ru.maelnor.tasks.model.TaskModel;
-import ru.maelnor.tasks.projection.TaskSummary;
 import ru.maelnor.tasks.service.TaskFilterService;
 import ru.maelnor.tasks.service.TaskService;
+import ru.maelnor.tasks.utils.BindingResultParser;
 
-import java.text.MessageFormat;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -85,12 +83,8 @@ public class TaskWebController {
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER') or @taskPermissionEvaluator.isTaskOwner(#id)")
     @GetMapping("/view/{id}")
     public String viewTask(@PathVariable UUID id, Model model) {
-        Optional<TaskModel> task = taskService.getTaskById(id);
-        if (task.isEmpty()) {
-            throw new TaskNotFoundException(id);
-        }
-        TaskDto taskDto = TaskMapper.INSTANCE.toDto(task.get());
-        model.addAttribute("taskDto", taskDto);
+        TaskModel task = taskService.getTaskById(id).orElseThrow(() -> new TaskNotFoundException(id));
+        model.addAttribute("taskDto", TaskMapper.INSTANCE.toDto(task));
         model.addAttribute("pageTitle", "Просмотр задачи с id: " + id);
         return "tasks/view";
     }
@@ -120,7 +114,7 @@ public class TaskWebController {
     public String addTask(Model model, @Valid TaskDto dto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("taskDto", dto);
-            model.addAttribute("bindingErrors", bindingResult.getAllErrors());
+            model.addAttribute("bindingErrors", BindingResultParser.parseErrors(bindingResult));
             return "tasks/add";
         }
         taskService.addTask(TaskMapper.INSTANCE.toModel(dto));
@@ -137,12 +131,8 @@ public class TaskWebController {
     @PreAuthorize("hasRole('ROLE_ADMIN') or @taskPermissionEvaluator.isTaskOwner(#id)")
     @GetMapping("/edit/{id}")
     public String editTaskForm(@PathVariable UUID id, Model model) {
-        Optional<TaskModel> task = taskService.getTaskById(id);
-        if (task.isEmpty()) {
-            throw new TaskNotFoundException(id);
-        }
-        TaskDto taskDto = TaskMapper.INSTANCE.toDto(task.get());
-        model.addAttribute("taskDto", taskDto);
+        TaskModel task = taskService.getTaskById(id).orElseThrow(() -> new TaskNotFoundException(id));
+        model.addAttribute("taskDto", TaskMapper.INSTANCE.toDto(task));
         model.addAttribute("pageTitle", "Редактирование задачи с id: " + id);
         return "tasks/edit";
     }
@@ -158,25 +148,18 @@ public class TaskWebController {
      */
     @PutMapping("/edit/{id}")
     public String updateTask(Model model, @PathVariable UUID id, @Valid TaskDto dto, BindingResult bindingResult) {
-        Optional<TaskModel> task = taskService.getTaskById(id);
-        if (task.isEmpty()) {
-            bindingResult.rejectValue("id", "task.notfound", MessageFormat.format("Задача с id: {0} не найдена", id));
-            throw new TaskNotFoundException(id);
-        }
+        TaskModel task = taskService.getTaskById(id).orElseThrow(() -> new TaskNotFoundException(id));
         if (bindingResult.hasErrors()) {
             dto.setId(id);
             model.addAttribute("taskDto", dto);
             model.addAttribute("pageTitle", "Редактирование задачи с id: " + id);
-            model.addAttribute("bindingErrors", bindingResult.getAllErrors());
+            model.addAttribute("bindingErrors", BindingResultParser.parseErrors(bindingResult));
             return "tasks/edit";
         }
 
-        TaskModel updatedTask = task.get();
-        updatedTask.setId(id);
-        updatedTask.setName(dto.getName());
-        updatedTask.setCompleted(dto.isCompleted());
-        updatedTask.setDescription(dto.getDescription());
-        taskService.updateTask(updatedTask);
+        BeanUtils.copyProperties(dto, task, "id");
+
+        taskService.updateTask(task);
         return "redirect:/tasks";
     }
 
@@ -188,8 +171,7 @@ public class TaskWebController {
      */
     @DeleteMapping("/{id}")
     public String deleteTask(@PathVariable UUID id) {
-        Optional<TaskModel> task = taskService.getTaskById(id);
-        if (task.isEmpty()) {
+        if (taskService.getTaskById(id).isEmpty()) {
             throw new TaskNotFoundException(id);
         }
         taskService.deleteTask(id);
