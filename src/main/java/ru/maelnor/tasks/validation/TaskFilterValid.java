@@ -2,12 +2,12 @@ package ru.maelnor.tasks.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import ru.maelnor.tasks.dto.filter.TaskFilter;
+import ru.maelnor.tasks.dto.filter.TaskFilterDto;
 
 import java.lang.annotation.*;
 
 /**
- * Аннотация для валидации фильтра задач {@link TaskFilter}.
+ * Аннотация для валидации фильтра задач {@link TaskFilterDto}.
  * Проверяет, что поля пагинации указаны корректно.
  * Аннотация должна быть применена на уровне класса.
  */

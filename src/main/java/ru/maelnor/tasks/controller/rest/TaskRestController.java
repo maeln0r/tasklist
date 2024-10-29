@@ -17,7 +17,8 @@ import ru.maelnor.tasks.dto.TaskDto;
 import ru.maelnor.tasks.entity.UserEntity;
 import ru.maelnor.tasks.exception.TaskNotFoundException;
 import ru.maelnor.tasks.dto.ErrorResponse;
-import ru.maelnor.tasks.dto.filter.TaskFilter;
+import ru.maelnor.tasks.dto.filter.TaskFilterDto;
+import ru.maelnor.tasks.mapper.TaskFilterMapper;
 import ru.maelnor.tasks.mapper.TaskMapper;
 import ru.maelnor.tasks.model.TaskModel;
 import ru.maelnor.tasks.service.TaskService;
@@ -61,8 +62,8 @@ public class TaskRestController {
                             schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/filtered")
-    public Page<TaskDto> getFilteredTasks(@Valid TaskFilter taskFilter) {
-        return taskService.filterBy(taskFilter).map(TaskMapper.INSTANCE::toDto);
+    public Page<TaskDto> getFilteredTasks(@Valid TaskFilterDto taskFilterDto) {
+        return taskService.filterBy(TaskFilterMapper.INSTANCE.toModel(taskFilterDto)).map(TaskMapper.INSTANCE::toDto);
     }
 
 
@@ -94,7 +95,7 @@ public class TaskRestController {
     })
     @PostMapping
     public ResponseEntity<TaskDto> createTask(@Valid @RequestBody TaskDto taskDto) {
-        TaskDto createdTask = TaskMapper.INSTANCE.toDto(taskService.addTask(taskDto));
+        TaskDto createdTask = TaskMapper.INSTANCE.toDto(taskService.addTask(TaskMapper.INSTANCE.toModel(taskDto)));
         return ResponseEntity.ok(createdTask);
     }
 
@@ -114,13 +115,13 @@ public class TaskRestController {
     public ResponseEntity<TaskDto> updateTask(@Parameter(description = "ID задачи", required = true) @PathVariable UUID id,
                                               @Valid @RequestBody TaskDto taskDto) {
         Optional<TaskDto> updatedTask = taskService.getTaskById(id)
-                .map(TaskMapper.INSTANCE::toDto)
                 .map(existingTask -> {
                     existingTask.setName(taskDto.getName());
                     existingTask.setCompleted(taskDto.isCompleted());
                     taskService.updateTask(existingTask);
                     return existingTask;
-                });
+                })
+                .map(TaskMapper.INSTANCE::toDto);
         return updatedTask.map(ResponseEntity::ok)
                 .orElseThrow(() -> new TaskNotFoundException(id));
     }
@@ -133,7 +134,7 @@ public class TaskRestController {
                             schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<TaskDto> deleteTask(@Parameter(description = "ID задачи", required = true) @PathVariable UUID id, @AuthenticationPrincipal UserEntity currentUser) {
+    public ResponseEntity<TaskDto> deleteTask(@Parameter(description = "ID задачи", required = true) @PathVariable UUID id) {
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
     }

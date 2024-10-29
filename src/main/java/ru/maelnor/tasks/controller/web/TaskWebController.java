@@ -1,8 +1,10 @@
 package ru.maelnor.tasks.controller.web;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,10 +12,14 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import ru.maelnor.tasks.dto.TaskDto;
-import ru.maelnor.tasks.dto.filter.TaskFilter;
+import ru.maelnor.tasks.dto.filter.TaskFilterDto;
 import ru.maelnor.tasks.exception.TaskNotFoundException;
+import ru.maelnor.tasks.mapper.TaskFilterMapper;
 import ru.maelnor.tasks.mapper.TaskMapper;
+import ru.maelnor.tasks.model.TaskFilterModel;
 import ru.maelnor.tasks.model.TaskModel;
+import ru.maelnor.tasks.projection.TaskSummary;
+import ru.maelnor.tasks.service.TaskFilterService;
 import ru.maelnor.tasks.service.TaskService;
 
 import java.text.MessageFormat;
@@ -26,18 +32,11 @@ import java.util.UUID;
  */
 @Controller
 @RequestMapping("/tasks")
+@RequiredArgsConstructor
 public class TaskWebController {
 
     private final TaskService taskService;
-
-    /**
-     * Конструктор для внедрения сервиса управления задачами.
-     *
-     * @param taskService сервис для работы с задачами
-     */
-    public TaskWebController(TaskService taskService) {
-        this.taskService = taskService;
-    }
+    private final TaskFilterService taskFilterService;
 
     /**
      * Инициализирует разрешенные поля для привязки данных.
@@ -53,32 +52,26 @@ public class TaskWebController {
      * Отображает список задач с возможностью фильтрации.
      *
      * @param model         модель для передачи данных в представление
-     * @param taskFilter    фильтр задач
+     * @param taskFilterDto фильтр задач
      * @param bindingResult результат валидации фильтра
      * @return имя представления для отображения списка задач
      */
     @GetMapping
-    public String listTasks(Model model, @Valid TaskFilter taskFilter, BindingResult bindingResult) {
+    public String listTasks(Model model, @Valid TaskFilterDto taskFilterDto, BindingResult bindingResult) {
         model.addAttribute("pageTitle", "Список задач");
-        model.addAttribute("taskFilter", taskFilter);
+        model.addAttribute("taskFilter", taskFilterDto);
 
-        boolean filterNotEmpty = FieldUtils.getAllFieldsList(TaskFilter.class).stream()
-                .anyMatch(field -> {
-                    field.setAccessible(true);
-                    try {
-                        Object value = field.get(taskFilter);
-                        return value != null && (!(value instanceof String) || !((String) value).isEmpty());
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException("Ошибка доступа к полю: " + field.getName(), e);
-                    }
-                });
+        boolean filterNotEmpty = taskFilterService.isFilterNotEmpty(TaskFilterMapper.INSTANCE.toModel(taskFilterDto));
 
         if (filterNotEmpty && bindingResult.hasErrors()) {
             model.addAttribute("filterError", bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).toList());
             return "tasks/list";
         }
 
-        model.addAttribute("page", taskService.filterBy(taskFilter));
+        TaskFilterModel filterModel = TaskFilterMapper.INSTANCE.toModel(taskFilterDto);
+        Page<TaskDto> result = taskService.filterBy(filterModel).map(TaskMapper.INSTANCE::toDto);
+
+        model.addAttribute("page", result);
         return "tasks/list";
     }
 
@@ -130,7 +123,7 @@ public class TaskWebController {
             model.addAttribute("bindingErrors", bindingResult.getAllErrors());
             return "tasks/add";
         }
-        taskService.addTask(dto);
+        taskService.addTask(TaskMapper.INSTANCE.toModel(dto));
         return "redirect:/tasks";
     }
 
@@ -177,7 +170,8 @@ public class TaskWebController {
             model.addAttribute("bindingErrors", bindingResult.getAllErrors());
             return "tasks/edit";
         }
-        TaskDto updatedTask = TaskMapper.INSTANCE.toDto(task.get());
+
+        TaskModel updatedTask = task.get();
         updatedTask.setId(id);
         updatedTask.setName(dto.getName());
         updatedTask.setCompleted(dto.isCompleted());

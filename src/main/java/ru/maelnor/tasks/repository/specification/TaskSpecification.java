@@ -1,8 +1,9 @@
 package ru.maelnor.tasks.repository.specification;
 
 import org.springframework.data.jpa.domain.Specification;
+import ru.maelnor.tasks.dto.filter.TaskFilterDto;
 import ru.maelnor.tasks.entity.TaskEntity;
-import ru.maelnor.tasks.dto.filter.TaskFilter;
+import ru.maelnor.tasks.model.TaskFilterModel;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -16,22 +17,22 @@ import java.util.stream.Stream;
 public interface TaskSpecification {
 
     /**
-     * Создает спецификацию для фильтрации задач на основе параметров из {@link TaskFilter}.
+     * Создает спецификацию для фильтрации задач на основе параметров из {@link TaskFilterModel}.
      * Комбинирует условия фильтрации по имени задачи, статусу завершенности и идентификатору владельца.
      *
-     * @param taskFilter объект {@link TaskFilter}, содержащий параметры фильтрации
+     * @param taskFilterModel объект {@link TaskFilterModel}, содержащий параметры фильтрации
      * @return спецификация для фильтрации задач
      */
-    static Specification<TaskEntity> withFilter(TaskFilter taskFilter) {
+    static Specification<TaskEntity> withFilter(TaskFilterModel taskFilterModel) {
         return Stream.of(
-                        Optional.ofNullable(taskFilter.getName())
+                        Optional.ofNullable(taskFilterModel.getName())
                                 .filter(name -> !name.isEmpty())
                                 .map(TaskSpecification::byTaskName)
                                 .orElse(null),
-                        Optional.ofNullable(taskFilter.getCompleted())
+                        Optional.ofNullable(taskFilterModel.getCompleted())
                                 .map(TaskSpecification::byCompleted)
                                 .orElse(null),
-                        Optional.ofNullable(taskFilter.getOwnerId())
+                        Optional.ofNullable(taskFilterModel.getOwnerId())
                                 .map(TaskSpecification::ownedBy)
                                 .orElse(null)
                 ).filter(Objects::nonNull)

@@ -8,7 +8,7 @@
     <h2>${pageTitle!''}</h2>
 
     <!-- Форма фильтрации -->
-    <@filterFragments.filterForm action="/tasks" taskFilter=taskFilter />
+    <@filterFragments.filterForm action="/tasks" taskFilterDto=taskFilterDto />
 
     <!-- Таблица задач -->
     <table class="taskEntity-table task-table">
@@ -52,7 +52,7 @@
         totalPages=page.totalPages!1
         pageSize=page.size!10
         baseUrl="/tasks"
-        queryParams="&name=${taskFilter.name!}&completed=${taskFilter.completed!}"
+        queryParams="&name=${taskFilterDto.name!}&completed=${taskFilterDto.completed!}"
         />
     </#if>
 </@base.layout>

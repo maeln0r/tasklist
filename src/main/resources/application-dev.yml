@@ -13,6 +13,10 @@ spring:
     enabled: true
   jpa:
     generate-ddl: true
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
   kafka:
     bootstrap-servers: kafka:9092
     consumer:
@@ -26,7 +30,7 @@ server:
 
 logging:
   level:
-    root: ERROR
+    root: INFO
 
 springdoc:
   api-docs:

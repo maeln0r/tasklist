@@ -2,9 +2,9 @@ package ru.maelnor.tasks.service;
 
 import org.springframework.data.domain.Page;
 import ru.maelnor.tasks.dto.TaskDto;
-import ru.maelnor.tasks.entity.UserEntity;
 import ru.maelnor.tasks.mapper.TaskMapper;
-import ru.maelnor.tasks.dto.filter.TaskFilter;
+import ru.maelnor.tasks.dto.filter.TaskFilterDto;
+import ru.maelnor.tasks.model.TaskFilterModel;
 import ru.maelnor.tasks.model.TaskModel;
 
 import java.util.List;
@@ -28,17 +28,18 @@ public interface TaskService {
     /**
      * Добавляет новую задачу на основе переданных данных.
      *
-     * @param taskDto объект {@link TaskDto}, содержащий данные задачи
+     * @param taskModel объект {@link TaskModel}, содержащий данные задачи
      * @return добавленная задача в виде модели {@link TaskModel}
      */
-    TaskModel addTask(TaskDto taskDto);
+    TaskModel addTask(TaskModel taskModel);
 
     /**
      * Обновляет существующую задачу на основе переданных данных.
      *
-     * @param taskDto объект {@link TaskDto}, содержащий обновленные данные задачи
+     * @param taskModel объект {@link TaskModel}, содержащий обновленные данные задачи
+     * @return обновленная задача в виде модели {@link TaskModel}
      */
-    void updateTask(TaskDto taskDto);
+    TaskModel updateTask(TaskModel taskModel);
 
     /**
      * Удаляет задачу по её идентификатору.
@@ -58,8 +59,8 @@ public interface TaskService {
     /**
      * Фильтрует задачи на основе переданных параметров фильтрации.
      *
-     * @param filter объект {@link TaskFilter}, содержащий параметры фильтрации
+     * @param filter объект {@link TaskFilterModel}, содержащий параметры фильтрации
      * @return страница задач, удовлетворяющих критериям фильтрации
      */
-    Page<TaskModel> filterBy(TaskFilter filter);
+    Page<TaskModel> filterBy(TaskFilterModel filter);
 }

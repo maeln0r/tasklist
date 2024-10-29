@@ -10,7 +10,6 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 import ru.maelnor.tasks.entity.UserEntity;
 import ru.maelnor.tasks.service.OidcUserService;
-import ru.maelnor.tasks.service.UserService;
 
 import java.io.IOException;
 

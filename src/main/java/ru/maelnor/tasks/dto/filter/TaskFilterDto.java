@@ -15,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @TaskFilterValid
 @EqualsAndHashCode
-public class TaskFilter {
+public class TaskFilterDto {
     private Integer pageNumber;
     private Integer pageSize;
     private String name;

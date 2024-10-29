@@ -17,11 +17,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.maelnor.tasks.dto.TaskDto;
-import ru.maelnor.tasks.dto.filter.TaskFilter;
 import ru.maelnor.tasks.dto.kafka.TaskStatus;
 import ru.maelnor.tasks.entity.TaskEntity;
 import ru.maelnor.tasks.entity.UserEntity;
 import ru.maelnor.tasks.exception.TaskNotFoundException;
+import ru.maelnor.tasks.model.TaskFilterModel;
 import ru.maelnor.tasks.model.TaskModel;
 import ru.maelnor.tasks.repository.JpaTaskRepository;
 import ru.maelnor.tasks.repository.JpaUserRepository;
@@ -42,7 +42,7 @@ import java.util.UUID;
 @EnableCaching
 @Slf4j
 @RequiredArgsConstructor
-public class DatabaseTaskService implements TaskService {
+public class JpaTaskService implements TaskService {
 
     private final JpaTaskRepository taskRepository;
     private final CacheManager cacheManager;
@@ -61,7 +61,7 @@ public class DatabaseTaskService implements TaskService {
         List<TaskModel> tasks;
         CustomUserDetails user = currentUserService.getCurrentUser();
         if (user.isAdmin() || user.isManager()) {
-            tasks = taskRepository.findAll().stream()
+            tasks = taskRepository.findAllProjectedBy().stream()
                     .map(taskMapper::toModel)
                     .toList();
         } else {
@@ -84,14 +84,14 @@ public class DatabaseTaskService implements TaskService {
      * Добавляет новую задачу и отправляет сообщение в Kafka.
      * Кэширует добавленную задачу.
      *
-     * @param taskDto данные задачи для создания
+     * @param taskModel данные задачи для создания
      * @return созданная задача в виде модели {@link TaskModel}
      */
     @Override
     @Transactional
     @CachePut(value = "tasks", key = "#result.id")
-    public TaskModel addTask(TaskDto taskDto) {
-        TaskEntity taskEntity = taskMapper.toEntity(taskDto);
+    public TaskModel addTask(TaskModel taskModel) {
+        TaskEntity taskEntity = taskMapper.toEntity(taskModel);
         CustomUserDetails user = currentUserService.getCurrentUser();
         UserEntity userEntity = userRepository.findById(user.getId())
                 .orElseThrow(() -> new AccessDeniedException("Недостаточно прав для добавления задачи"));
@@ -105,23 +105,23 @@ public class DatabaseTaskService implements TaskService {
      * Обновляет существующую задачу и отправляет сообщение в Kafka.
      * Удаляет задачу из кэша.
      *
-     * @param taskDto данные задачи для обновления
+     * @param taskModel данные задачи для обновления
+     *                  todo: Не перезаписывать пользователя на текущего, добавить проверку на этот момент в тесты
      */
     @Override
     @Transactional
-    @CacheEvict(value = "tasks", key = "#taskDto.id")
-    public void updateTask(TaskDto taskDto) {
-        TaskEntity taskEntity = taskRepository.findById(taskDto.getId())
-                .orElseThrow(() -> new TaskNotFoundException(taskDto.getId()));
+    @CacheEvict(value = "tasks", key = "#taskModel.id")
+    public TaskModel updateTask(TaskModel taskModel) {
+        TaskEntity taskEntity = taskRepository.findById(taskModel.getId())
+                .orElseThrow(() -> new TaskNotFoundException(taskModel.getId()));
         CustomUserDetails user = currentUserService.getCurrentUser();
-        UserEntity userEntity = userRepository.findById(user.getId())
-                .orElseThrow(() -> new AccessDeniedException("Недостаточно прав для обновления задачи"));
 
         if (user.isAdmin() || taskEntity.getOwner().getId().equals(user.getId())) {
-            TaskEntity updatedTask = taskMapper.toEntity(taskDto);
-            updatedTask.setOwner(userEntity);
-            taskProducer.sendMessage(taskDto, TaskStatus.UPDATED);
-            taskRepository.save(updatedTask);
+            TaskEntity updatedTask = taskMapper.toEntity(taskModel);
+            updatedTask.setOwner(taskEntity.getOwner());
+            TaskModel result = taskMapper.toModel(taskRepository.save(taskEntity));
+            taskProducer.sendMessage(taskMapper.toDto(result), TaskStatus.NEW);
+            return result;
         } else {
             throw new AccessDeniedException("Недостаточно прав для обновления задачи");
         }
@@ -137,7 +137,7 @@ public class DatabaseTaskService implements TaskService {
     @Transactional
     @CacheEvict(value = "tasks", key = "#id")
     public void deleteTask(UUID id) {
-        TaskEntity taskEntity = taskRepository.findById(id)
+        TaskEntity taskEntity = taskRepository.findProjectedById(id).map(taskMapper::toEntity)
                 .orElseThrow(() -> new TaskNotFoundException(id));
         CustomUserDetails user = currentUserService.getCurrentUser();
         TaskDto taskDto = taskMapper.toDto(taskEntity);
@@ -159,7 +159,7 @@ public class DatabaseTaskService implements TaskService {
     @Override
     @Cacheable(value = "tasks", key = "#id")
     public Optional<TaskModel> getTaskById(UUID id) {
-        Optional<TaskEntity> taskEntityOptional = taskRepository.findById(id);
+        Optional<TaskEntity> taskEntityOptional = taskRepository.findProjectedById(id).map(taskMapper::toEntity);
 
         if (taskEntityOptional.isEmpty()) {
             return Optional.empty();
@@ -179,26 +179,26 @@ public class DatabaseTaskService implements TaskService {
      * Фильтрует задачи на основе параметров фильтрации.
      * Поддерживает пагинацию и сортировку, кэширует результаты.
      *
-     * @param taskFilter объект фильтрации {@link TaskFilter}
+     * @param taskFilterModel объект фильтрации {@link TaskFilterModel}
      * @return страница задач {@link Page}, удовлетворяющих критериям фильтрации
      */
     @Override
-    public Page<TaskModel> filterBy(TaskFilter taskFilter) {
+    public Page<TaskModel> filterBy(TaskFilterModel taskFilterModel) {
         Page<TaskModel> tasks;
         CustomUserDetails user = currentUserService.getCurrentUser();
         Pageable pageable = PageRequest.of(
-                taskFilter.getPageNumber() != null ? taskFilter.getPageNumber() : 0,
-                taskFilter.getPageSize() != null ? taskFilter.getPageSize() : 10,
+                taskFilterModel.getPageNumber() != null ? taskFilterModel.getPageNumber() : 0,
+                taskFilterModel.getPageSize() != null ? taskFilterModel.getPageSize() : 10,
                 Sort.Direction.DESC,
                 "id"
         );
         if (user.isAdmin() || user.isManager()) {
-            tasks = taskRepository.findAll(TaskSpecification.withFilter(taskFilter), pageable)
+            tasks = taskRepository.findAll(TaskSpecification.withFilter(taskFilterModel), pageable)
                     .map(taskMapper::toModel);
         } else {
             tasks = taskRepository.findAll(
                             Specification.where(TaskSpecification.ownedBy(user.getId()))
-                                    .and(TaskSpecification.withFilter(taskFilter)), pageable)
+                                    .and(TaskSpecification.withFilter(taskFilterModel)), pageable)
                     .map(taskMapper::toModel);
         }
 

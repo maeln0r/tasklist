@@ -6,6 +6,7 @@ import org.mapstruct.factory.Mappers;
 import ru.maelnor.tasks.dto.TaskDto;
 import ru.maelnor.tasks.entity.TaskEntity;
 import ru.maelnor.tasks.model.TaskModel;
+import ru.maelnor.tasks.projection.TaskSummary;
 
 /**
  * Интерфейс для преобразования (маппинга) между различными моделями данных.
@@ -46,10 +47,50 @@ public interface TaskMapper {
     TaskEntity toEntity(TaskDto taskDto);
 
     /**
+     * Преобразует модель задачи {@link TaskModel} в сущность задачи {@link TaskEntity}.
+     * Игнорирует поля createdAt, updatedAt и owner, так как они не передаются в модель.
+     *
+     * @param taskModel модель задачи
+     * @return сущность задачи
+     */
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    TaskEntity toEntity(TaskModel taskModel);
+
+    /**
+     * Преобразует проекция задачи {@link TaskSummary} в сущность задачи {@link TaskEntity}.
+     * Игнорирует поля createdAt, updatedAt и owner, так как они не передаются в проекцию.
+     *
+     * @param taskSummary проекция задачи
+     * @return сущность задачи
+     */
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    TaskEntity toEntity(TaskSummary taskSummary);
+
+    /**
+     * Преобразует DTO задачи {@link TaskDto} в модель задачи {@link TaskModel}.
+     *
+     * @param taskDto DTO задачи
+     * @return модель задачи
+     */
+    TaskModel toModel(TaskDto taskDto);
+
+    /**
      * Преобразует сущность задачи {@link TaskEntity} в модель задачи {@link TaskModel}.
      *
      * @param taskEntity сущность задачи
      * @return модель задачи
      */
     TaskModel toModel(TaskEntity taskEntity);
+
+    /**
+     * Преобразует проекцию задачи {@link TaskSummary} в модель задачи {@link TaskModel}.
+     *
+     * @param taskSummary проекция задачи
+     * @return модель задачи
+     */
+    TaskModel toModel(TaskSummary taskSummary);
 }
