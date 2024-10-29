@@ -67,7 +67,7 @@ public interface TaskMapper {
      */
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "description", ignore = true)
     TaskEntity toEntity(TaskSummary taskSummary);
 
     /**
@@ -92,5 +92,6 @@ public interface TaskMapper {
      * @param taskSummary проекция задачи
      * @return модель задачи
      */
+    @Mapping(target = "description", ignore = true)
     TaskModel toModel(TaskSummary taskSummary);
 }

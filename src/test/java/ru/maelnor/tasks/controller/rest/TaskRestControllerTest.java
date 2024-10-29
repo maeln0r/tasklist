@@ -15,7 +15,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.maelnor.tasks.TaskAbstractTest;
 
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -39,8 +38,7 @@ public class TaskRestControllerTest extends TaskAbstractTest {
 
     @Test
     void shouldReturnTaskById() throws Exception {
-        UUID taskId = taskService.getAllTasks().getFirst().getId();
-        mockMvc.perform(get("/api/tasks/{id}", taskId))
+        mockMvc.perform(get("/api/tasks/{id}", task.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Test Task"));
     }
@@ -58,8 +56,7 @@ public class TaskRestControllerTest extends TaskAbstractTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void shouldUpdateTask() throws Exception {
-        UUID taskId = taskService.getAllTasks().getFirst().getId();
-        mockMvc.perform(put("/api/tasks/{id}", taskId)
+        mockMvc.perform(put("/api/tasks/{id}", task.getId())
                         .contentType("application/json")
                         .content("{\"name\":\"Updated Task\", \"completed\":true}"))
                 .andExpect(status().isOk())
@@ -70,11 +67,10 @@ public class TaskRestControllerTest extends TaskAbstractTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void shouldDeleteTask() throws Exception {
-        UUID taskId = taskService.getAllTasks().getFirst().getId();
-        mockMvc.perform(delete("/api/tasks/{id}", taskId))
+        mockMvc.perform(delete("/api/tasks/{id}", task.getId()))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/tasks/{id}", taskId))
+        mockMvc.perform(get("/api/tasks/{id}", task.getId()))
                 .andExpect(status().isNotFound());
     }
 

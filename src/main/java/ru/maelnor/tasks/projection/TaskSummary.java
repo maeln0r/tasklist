@@ -1,5 +1,7 @@
 package ru.maelnor.tasks.projection;
 
+import ru.maelnor.tasks.entity.UserEntity;
+
 import java.util.UUID;
 
 /**
@@ -9,4 +11,5 @@ public interface TaskSummary {
     UUID getId();
     String getName();
     boolean isCompleted();
+    UserEntity getOwner();
 }
