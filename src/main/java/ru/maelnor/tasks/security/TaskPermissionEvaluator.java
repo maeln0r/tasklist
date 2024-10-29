@@ -34,6 +34,7 @@ public class TaskPermissionEvaluator {
      * @throws TaskNotFoundException если задача с заданным идентификатором не найдена
      */
     public boolean isTaskOwner(UUID taskId) {
+        CustomUserDetails customUserDetails = currentUserService.getCurrentUser();
         TaskEntity taskEntity = taskRepository.findById(taskId)
                 .orElseThrow(() -> new TaskNotFoundException(taskId));
         return taskEntity.getOwner().getId().equals(currentUserService.getCurrentUser().getId());

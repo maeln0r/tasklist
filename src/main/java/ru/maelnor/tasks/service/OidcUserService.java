@@ -87,20 +87,10 @@ public class OidcUserService {
             if (realmAccess.containsKey("roles")) {
                 var oidcRoles = (List<String>) realmAccess.get("roles");
 
-                for (String role : oidcRoles) {
-                    switch (role) {
-                        case "ADMIN":
-                            roles.add(RoleType.ROLE_ADMIN);
-                            break;
-                        case "MANAGER":
-                            roles.add(RoleType.ROLE_MANAGER);
-                            break;
-                        case "USER":
-                        default:
-                            roles.add(RoleType.ROLE_USER);
-                            break;
-                    }
-                }
+                oidcRoles.stream()
+                        .filter(role -> EnumSet.allOf(RoleType.class).stream()
+                                .anyMatch(enumRole -> enumRole.name().equals(role)))
+                        .forEach(role -> roles.add(RoleType.valueOf(role)));
             }
         }
 

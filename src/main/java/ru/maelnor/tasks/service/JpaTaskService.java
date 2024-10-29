@@ -2,6 +2,7 @@ package ru.maelnor.tasks.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
@@ -117,10 +118,9 @@ public class JpaTaskService implements TaskService {
         CustomUserDetails user = currentUserService.getCurrentUser();
 
         if (user.isAdmin() || taskEntity.getOwner().getId().equals(user.getId())) {
-            TaskEntity updatedTask = taskMapper.toEntity(taskModel);
-            updatedTask.setOwner(taskEntity.getOwner());
+            BeanUtils.copyProperties(taskModel, taskEntity);
             TaskModel result = taskMapper.toModel(taskRepository.save(taskEntity));
-            taskProducer.sendMessage(taskMapper.toDto(result), TaskStatus.NEW);
+            taskProducer.sendMessage(taskMapper.toDto(result), TaskStatus.UPDATED);
             return result;
         } else {
             throw new AccessDeniedException("Недостаточно прав для обновления задачи");

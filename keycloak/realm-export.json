@@ -88,7 +88,7 @@
       },
       {
         "id": "fef3cfc6-c203-474f-8ad0-6e8b52929a3b",
-        "name": "USER",
+        "name": "ROLE_USER",
         "description": "",
         "composite": false,
         "clientRole": false,
@@ -97,7 +97,7 @@
       },
       {
         "id": "7ffde746-eb06-47c6-badf-8323fca328d4",
-        "name": "ADMIN",
+        "name": "ROLE_ADMIN",
         "description": "",
         "composite": false,
         "clientRole": false,
@@ -106,7 +106,7 @@
       },
       {
         "id": "98ce03f8-15d5-45fe-9918-200e9c014482",
-        "name": "MANAGER",
+        "name": "ROLE_MANAGER",
         "description": "",
         "composite": false,
         "clientRole": false,

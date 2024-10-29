@@ -21,6 +21,6 @@ public class TaskConsumer {
      */
     @KafkaListener(topics = "task_list", groupId = "task-list-group")
     public void consume(KafkaTaskMessage message) {
-        log.error("Получено сообщение из Kafka: {}", message);
+        log.info("Получено сообщение из Kafka: {}", message);
     }
 }
