@@ -20,5 +20,5 @@ public class TaskFilterDto {
     private Integer pageSize;
     private String name;
     private Boolean completed;
-    private UUID ownerId;
+    private String ownerId;
 }

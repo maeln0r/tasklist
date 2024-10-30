@@ -20,6 +20,7 @@ import ru.maelnor.tasks.model.TaskFilterModel;
 import ru.maelnor.tasks.model.TaskModel;
 import ru.maelnor.tasks.service.TaskFilterService;
 import ru.maelnor.tasks.service.TaskService;
+import ru.maelnor.tasks.service.UserService;
 import ru.maelnor.tasks.utils.BindingResultParser;
 
 import java.util.UUID;
@@ -34,6 +35,7 @@ import java.util.UUID;
 public class TaskWebController {
 
     private final TaskService taskService;
+    private final UserService userService;
     private final TaskFilterService taskFilterService;
 
     /**
@@ -60,9 +62,13 @@ public class TaskWebController {
         model.addAttribute("taskFilter", taskFilterDto);
 
         boolean filterNotEmpty = taskFilterService.isFilterNotEmpty(TaskFilterMapper.INSTANCE.toModel(taskFilterDto));
+        if (taskFilterService.canAccessOwnerId()) {
+            model.addAttribute("canAccessOwnerId", true);
+            model.addAttribute("userList", userService.getUsesWithTask());
+        }
 
         if (filterNotEmpty && bindingResult.hasErrors()) {
-            model.addAttribute("filterError", bindingResult.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).toList());
+            model.addAttribute("filterError", BindingResultParser.parseErrors(bindingResult));
             return "tasks/list";
         }
 

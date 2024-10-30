@@ -2,6 +2,7 @@ package ru.maelnor.tasks.controller.web;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,20 +22,19 @@ public class UserProfileController {
     private final UserService userService;
 
     @GetMapping("/profile/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER') or @userProfilePermissionEvaluator.isProfileOwner(#id)")
     public String showUserProfile(@PathVariable UUID id, Model model, HttpServletRequest request) {
-        Optional<UserModel> user = userService.getUserById(id);
-        if (user.isEmpty()) {
-            throw new UserNotFoundException(id);
-        }
+        UserModel user = userService.getUserById(id).orElseThrow(() -> new UserNotFoundException(id));
 
-        model.addAttribute("user", user.get());
+        model.addAttribute("user", user);
         model.addAttribute("request", request);
-        model.addAttribute("pageTitle", "Профиль пользователя " + user.get().getUsername());
+        model.addAttribute("pageTitle", "Профиль пользователя " + user.getUsername());
 
         return "user";
     }
 
     @PostMapping("/change-password")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @userProfilePermissionEvaluator.isProfileOwner(#userId)")
     public String changePassword(@RequestParam("user_id") UUID userId, @RequestParam("password") String password, Model model) {
         Optional<UserModel> user = userService.getUserById(userId);
         if (user.isEmpty()) {

@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,38 +18,63 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     /**
-     * Обрабатывает все типы исключений и возвращает ответ с кодом 500 (Internal Server Error).
+     * Обрабатывает все типы исключений. Возвращает JSON для REST-запросов и HTML для обычных запросов.
      *
      * @param ex      исключение, которое было выброшено
      * @param request информация о веб-запросе, который вызвал исключение
-     * @return объект {@link ResponseEntity} с телом, содержащим статус ошибки, сообщение и путь запроса
+     * @return JSON-ответ для REST-запросов или HTML-страница для обычных запросов
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        body.put("error", "Internal Server Error");
-        body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false).replace("uri=", ""));
-
-        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    public Object handleAllExceptions(Exception ex, WebRequest request) {
+        if (isRestRequest(request)) {
+            return buildJsonResponse(ex, request, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return buildHtmlResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
-     * Обрабатывает исключения типа {@link RuntimeException} и возвращает ответ с кодом 500 (Internal Server Error).
+     * Обрабатывает исключения типа {@link RuntimeException}.
      *
      * @param ex      исключение, которое было выброшено
      * @param request информация о веб-запросе, который вызвал исключение
-     * @return объект {@link ResponseEntity} с телом, содержащим статус ошибки, сообщение и путь запроса
+     * @return JSON-ответ для REST-запросов или HTML-страница для обычных запросов
      */
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Object> handleRuntimeException(RuntimeException ex, WebRequest request) {
+    public Object handleRuntimeException(RuntimeException ex, WebRequest request) {
+        if (isRestRequest(request)) {
+            return buildJsonResponse(ex, request, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return buildHtmlResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Проверяет, является ли запрос REST-запросом (JSON).
+     */
+    private boolean isRestRequest(WebRequest request) {
+        String acceptHeader = request.getHeader("Accept");
+        return acceptHeader != null && acceptHeader.contains("application/json");
+    }
+
+    /**
+     * Создает JSON-ответ для REST-запросов.
+     */
+    private ResponseEntity<Object> buildJsonResponse(Exception ex, WebRequest request, HttpStatus status) {
         Map<String, Object> body = new HashMap<>();
-        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        body.put("error", "Runtime Error");
+        body.put("status", status.value());
+        body.put("error", status.getReasonPhrase());
         body.put("message", ex.getMessage());
         body.put("path", request.getDescription(false).replace("uri=", ""));
+        return new ResponseEntity<>(body, status);
+    }
 
-        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    /**
+     * Создает HTML-ответ для обычных запросов.
+     */
+    private ModelAndView buildHtmlResponse(Exception ex, HttpStatus status) {
+        ModelAndView modelAndView = new ModelAndView("error");
+        modelAndView.addObject("status", status.value());
+        modelAndView.addObject("error", status.getReasonPhrase());
+        modelAndView.addObject("message", ex.getMessage());
+        return modelAndView;
     }
 }

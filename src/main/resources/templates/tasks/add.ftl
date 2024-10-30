@@ -8,22 +8,28 @@
         <!-- Поле для имени задачи -->
         <div class="form-group">
             <label for="taskEntity-name">Имя задачи</label>
-            <input type="text" name="name" id="taskEntity-name" placeholder="Введите имя задачи" class="task-form-control" value="${taskDto.name!}" />
-            <#if bindingErrors?? && bindingErrors?has_content>
-                <#list bindingErrors as error>
-                    <div class="error-message">${error.defaultMessage}</div>
-                </#list>
+            <input
+                    type="text"
+                    name="name"
+                    id="taskEntity-name"
+                    placeholder="Введите имя задачи"
+                    class="task-form-control<#if bindingErrors?? && bindingErrors.name??> error</#if>"
+                    value="${taskDto.name!}" />
+            <#if bindingErrors?? && bindingErrors.name??>
+                <div class="error-message">${bindingErrors.name}</div>
             </#if>
         </div>
 
         <!-- Поле для описания задачи -->
         <div class="form-group">
             <label for="taskEntity-description">Текст задачи</label>
-            <textarea name="description" id="taskEntity-description" placeholder="Введите текст задачи" class="task-form-control">${taskDto.description!}</textarea>
-            <#if bindingErrors?? && bindingErrors?has_content>
-                <#list bindingErrors as error>
-                    <div class="error-message">${error.defaultMessage}</div>
-                </#list>
+            <textarea
+                    name="description"
+                    id="taskEntity-description"
+                    placeholder="Введите текст задачи"
+                    class="task-form-control<#if bindingErrors?? && bindingErrors.description??> error</#if>">${taskDto.description!}</textarea>
+            <#if bindingErrors?? && bindingErrors.description??>
+                <div class="error-message">${bindingErrors.description}</div>
             </#if>
         </div>
 

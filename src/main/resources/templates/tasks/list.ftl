@@ -8,7 +8,12 @@
     <h2>${pageTitle!''}</h2>
 
     <!-- Форма фильтрации -->
-    <@filterFragments.filterForm action="/tasks" taskFilterDto=taskFilterDto />
+    <@filterFragments.filterForm
+    action="/tasks"
+    taskFilterDto=taskFilter
+    canAccessOwnerId=canAccessOwnerId
+    userList=userList
+    />
 
     <!-- Таблица задач -->
     <table class="taskEntity-table task-table">
@@ -52,7 +57,7 @@
         totalPages=page.totalPages!1
         pageSize=page.size!10
         baseUrl="/tasks"
-        queryParams="&name=${taskFilterDto.name!}&completed=${taskFilterDto.completed!}"
+        queryParams="&name=${taskFilter.name!}&completed=${taskFilter.completed!}${canAccessOwnerId?string('&ownerId=${taskFilter.ownerId!}', '')}"
         />
     </#if>
 </@base.layout>

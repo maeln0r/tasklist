@@ -1,9 +1,11 @@
 package ru.maelnor.tasks.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.maelnor.tasks.entity.UserEntity;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,4 +39,11 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, UUID> {
      * @return {@code true}, если пользователь существует, иначе {@code false}
      */
     Boolean existsByEmail(String email);
+
+    /**
+     * Список пользователей у которых есть хотя бы одна задача
+     * @return Список пользователей
+     */
+    @Query("SELECT DISTINCT t.owner FROM tasks t WHERE t.owner IS NOT NULL")
+    List<UserEntity> findUsersWithTasks();
 }

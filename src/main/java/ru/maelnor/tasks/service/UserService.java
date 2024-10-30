@@ -10,8 +10,10 @@ import ru.maelnor.tasks.model.UserModel;
 import ru.maelnor.tasks.repository.JpaUserRepository;
 import ru.maelnor.tasks.security.CustomUserDetails;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Сервис для управления локальными пользователями
@@ -25,7 +27,12 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
 
-
+    /**
+     * Получить модель пользователя по ID с проверкой прав
+     *
+     * @param id - id пользователя
+     * @return - модель пользователя
+     */
     public Optional<UserModel> getUserById(UUID id) {
         Optional<UserEntity> userEntityOptional = userRepository.findById(id);
 
@@ -43,6 +50,12 @@ public class UserService {
         }
     }
 
+    /**
+     * Сменить локальный пароль пользователя (с проверкой прав на операцию)
+     *
+     * @param id       - id пользователя
+     * @param password - новый пароль
+     */
     public void changeUserPassword(UUID id, String password) {
         Optional<UserEntity> userEntityOptional = userRepository.findById(id);
 
@@ -57,5 +70,10 @@ public class UserService {
                 throw new AccessDeniedException("Недостаточно прав для изменения пароля");
             }
         }
+    }
+
+    public Map<String, String> getUsesWithTask() {
+        return userRepository.findUsersWithTasks().stream()
+                .collect(Collectors.toMap(UserEntity::getUsername, user -> user.getId().toString()));
     }
 }

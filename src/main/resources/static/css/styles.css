@@ -82,6 +82,9 @@ body {
     border: 1px solid #ccc;
     box-sizing: border-box;
 }
+.filter-form .form-control.error {
+    outline: 1px solid #dc3545;
+}
 
 .filter-form .alert.alert-error p {
     color: #dc3545;
@@ -138,6 +141,11 @@ body {
     margin-bottom: 15px;
 }
 
+.form-group .error-message {
+    font-size: 14px;
+    color: #dc3545;
+}
+
 .form-group label {
     display: block;
     margin-bottom: 5px;
@@ -155,6 +163,10 @@ body {
     box-sizing: border-box;
     background-color: #fff;
     transition: border-color 0.3s ease;
+}
+
+.task-form-control.error {
+    outline: 1px solid #dc3545;
 }
 
 .task-form-control:focus {

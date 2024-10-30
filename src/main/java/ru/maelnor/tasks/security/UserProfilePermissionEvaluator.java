@@ -15,27 +15,24 @@ import java.util.UUID;
  *
  * @see TaskRepository
  * @see CurrentUserService
- * @see ru.maelnor.tasks.entity.TaskEntity
- * @see ru.maelnor.tasks.exception.TaskNotFoundException
+ * @see TaskEntity
+ * @see TaskNotFoundException
  */
 @Component
 @RequiredArgsConstructor
-public class TaskPermissionEvaluator {
+public class UserProfilePermissionEvaluator {
 
-    private final JpaTaskRepository taskRepository;
     private final CurrentUserService currentUserService;
 
     /**
-     * Проверяет, является ли текущий пользователь владельцем задачи.
+     * Проверяет, является ли текущий пользователь владельцем профиля.
      *
-     * @param taskId идентификатор задачи для проверки
+     * @param userId идентификатор задачи для проверки
      * @return {@code true}, если текущий пользователь является владельцем задачи;
      * {@code false} в противном случае
      * @throws TaskNotFoundException если задача с заданным идентификатором не найдена
      */
-    public boolean isTaskOwner(UUID taskId) {
-        TaskEntity taskEntity = taskRepository.findById(taskId)
-                .orElseThrow(() -> new TaskNotFoundException(taskId));
-        return taskEntity.getOwner().getId().equals(currentUserService.getCurrentUser().getId());
+    public boolean isProfileOwner(UUID userId) {
+        return userId.equals(currentUserService.getCurrentUser().getId());
     }
 }

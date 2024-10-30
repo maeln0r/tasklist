@@ -11,3 +11,8 @@ spring:
     cache: false
     charset: UTF-8
     content-type: text/html
+server:
+  error:
+    whitelabel:
+      enabled: false
+    path: /error

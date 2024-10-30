@@ -1,6 +1,7 @@
 package ru.maelnor.tasks.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import ru.maelnor.tasks.dto.filter.TaskFilterDto;
 import ru.maelnor.tasks.model.TaskFilterModel;
@@ -11,7 +12,7 @@ import ru.maelnor.tasks.model.TaskFilterModel;
  * Выполняет преобразования между сущностями, DTO и моделями фильтра задач.
  */
 @Mapper
-public interface TaskFilterMapper {
+public interface TaskFilterMapper extends MapperTypeCaster {
     TaskFilterMapper INSTANCE = Mappers.getMapper(TaskFilterMapper.class);
 
     /**
@@ -20,6 +21,7 @@ public interface TaskFilterMapper {
      * @param taskFilterDto DTO фильтра задач
      * @return модель фильтра задач
      */
+    @Mapping(source = "ownerId", target = "ownerId", qualifiedByName = "stringToUUID")
     TaskFilterModel toModel(TaskFilterDto taskFilterDto);
 
     /**
@@ -28,5 +30,6 @@ public interface TaskFilterMapper {
      * @param taskFilterModel модель фильтра задач
      * @return DTO фильтра задач
      */
+    @Mapping(source = "ownerId", target = "ownerId", qualifiedByName = "uuidToString")
     TaskFilterDto toDto(TaskFilterModel taskFilterModel);
 }
