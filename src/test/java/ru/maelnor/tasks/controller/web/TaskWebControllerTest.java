@@ -5,14 +5,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.maelnor.tasks.TaskAbstractTest;
 import ru.maelnor.tasks.exception.TaskNotFoundException;
 
-import java.text.MessageFormat;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
@@ -25,7 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @Transactional
 @WithUserDetails(value = "user", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
-@ActiveProfiles("test")
 public class TaskWebControllerTest extends TaskAbstractTest {
 
     @Test
@@ -35,6 +32,32 @@ public class TaskWebControllerTest extends TaskAbstractTest {
                 .andExpect(model().attributeExists("page"))
                 .andExpect(model().attribute("page", hasProperty("content", hasSize(greaterThan(0)))))
                 .andExpect(model().attribute("pageTitle", "Список задач"))
+                .andExpect(view().name("tasks/list"));
+    }
+
+    @Test
+    @WithUserDetails(value = "admin", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void shouldDisplayOwnerFilterForAdmin() throws Exception {
+        mockMvc.perform(get("/tasks"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("<label for=\"ownerId\">Пользователь:</label>")))
+                .andExpect(view().name("tasks/list"));
+    }
+
+    @Test
+    @WithUserDetails(value = "manager", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void shouldDisplayOwnerFilterForManager() throws Exception {
+        mockMvc.perform(get("/tasks"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("<label for=\"ownerId\">Пользователь:</label>")))
+                .andExpect(view().name("tasks/list"));
+    }
+
+    @Test
+    void shouldNotDisplayOwnerFilterForUser() throws Exception {
+        mockMvc.perform(get("/tasks"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(org.hamcrest.Matchers.containsString("<label for=\"ownerId\">Пользователь:</label>"))))
                 .andExpect(view().name("tasks/list"));
     }
 
@@ -62,7 +85,7 @@ public class TaskWebControllerTest extends TaskAbstractTest {
                 .andExpect(model().attribute("taskFilter", hasProperty("pageSize", is(pageSize))))
                 .andExpect(model().attribute("taskFilter", hasProperty("name", is(taskName))))
                 .andExpect(model().attribute("taskFilter", hasProperty("completed", is(completed))))
-                .andExpect(model().attribute("taskFilter", hasProperty("ownerId", is(user.getId()))));
+                .andExpect(model().attribute("taskFilter", hasProperty("ownerId", is(user.getId().toString()))));
 
     }
 
@@ -79,6 +102,32 @@ public class TaskWebControllerTest extends TaskAbstractTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("pageTitle", "Список задач"))
                 .andExpect(model().attributeExists("filterError"))
+                .andExpect(model().attribute("filterError", hasEntry("pageNumber", "Номер страницы обязателен")))
+                .andExpect(model().attribute("filterError", hasEntry("pageSize", "Размер страницы обязателен")))
+                .andExpect(model().attributeExists("taskFilter"))
+                .andExpect(model().attributeDoesNotExist("page"))
+                .andExpect(view().name("tasks/list"));
+
+    }
+
+    @Test
+    void shouldThrowValidationExceptionIfTaskFilterOwnerIdIsInvalid() throws Exception {
+        String taskName = "Test Task";
+        boolean completed = false;
+        int pageNumber = 0;
+        int pageSize = 5;
+
+        mockMvc.perform(get("/tasks")
+                        .param("pageNumber", String.valueOf(pageNumber))
+                        .param("pageSize", String.valueOf(pageSize))
+                        .param("name", taskName)
+                        .param("completed", String.valueOf(completed))
+                        .param("ownerId", "Random string")
+                )
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("pageTitle", "Список задач"))
+                .andExpect(model().attributeExists("filterError"))
+                .andExpect(model().attribute("filterError", hasEntry("ownerId", "Некорректный формат UUID для поля ownerId")))
                 .andExpect(model().attributeExists("taskFilter"))
                 .andExpect(model().attributeDoesNotExist("page"))
                 .andExpect(view().name("tasks/list"));
@@ -136,7 +185,8 @@ public class TaskWebControllerTest extends TaskAbstractTest {
         UUID taskId = adminTask.getId();
         mockMvc.perform(get("/tasks/view/{id}", taskId))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.message").value("Access Denied"));
+                .andExpect(content().contentType("text/html;charset=UTF-8"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Access Denied")));
     }
 
     @Test
@@ -188,7 +238,8 @@ public class TaskWebControllerTest extends TaskAbstractTest {
         UUID taskId = task.getId();
         mockMvc.perform(get("/tasks/edit/{id}", taskId))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.message").value("Access Denied"));
+                .andExpect(content().contentType("text/html;charset=UTF-8"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Access Denied")));
     }
 
     @Test
@@ -228,7 +279,8 @@ public class TaskWebControllerTest extends TaskAbstractTest {
                         .param("name", "Updated Task")
                         .param("completed", "true"))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.message").value("Недостаточно прав для просмотра задачи"));
+                .andExpect(content().contentType("text/html;charset=UTF-8"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Недостаточно прав для просмотра задачи")));
     }
 
 
@@ -240,7 +292,8 @@ public class TaskWebControllerTest extends TaskAbstractTest {
                         .param("name", "Updated Task")
                         .param("completed", "true"))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.message").value("Недостаточно прав для обновления задачи"));
+                .andExpect(content().contentType("text/html;charset=UTF-8"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Недостаточно прав для обновления задачи")));
     }
 
     @Test
@@ -284,7 +337,8 @@ public class TaskWebControllerTest extends TaskAbstractTest {
         UUID taskId = adminTask.getId();
         mockMvc.perform(delete("/tasks/{id}", taskId))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.message").value("Недостаточно прав для просмотра задачи"));
+                .andExpect(content().contentType("text/html;charset=UTF-8"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Недостаточно прав для просмотра задачи")));
     }
 
     @Test
@@ -293,7 +347,8 @@ public class TaskWebControllerTest extends TaskAbstractTest {
         UUID taskId = task.getId();
         mockMvc.perform(delete("/tasks/{id}", taskId))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.message").value("Недостаточно прав для удаления задачи"));
+                .andExpect(content().contentType("text/html;charset=UTF-8"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Недостаточно прав для удаления задачи")));
     }
 
 

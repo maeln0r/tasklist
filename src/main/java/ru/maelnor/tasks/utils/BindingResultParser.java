@@ -11,8 +11,10 @@ public class BindingResultParser {
         return bindingResult.getFieldErrors().stream()
                 .collect(Collectors.toMap(
                         FieldError::getField,
-                        FieldError::getDefaultMessage
+                        error -> error.getDefaultMessage() != null ? error.getDefaultMessage() : "Неизвестная ошибка",
+                        (existingValue, newValue) -> existingValue + ", " + newValue
                 ));
     }
 }
+
 

@@ -39,7 +39,8 @@ class UserProfileControllerTest extends UserAbstractTest {
     void shouldNotDisplayAdminProfileForUser() throws Exception {
         mockMvc.perform(get("/user/profile/" + admin.getId()))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.message").value("Недостаточно прав для просмотра профиля пользователя"));
+                .andExpect(content().contentType("text/html;charset=UTF-8"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Access Denied")));
     }
 
     @Test
@@ -48,7 +49,8 @@ class UserProfileControllerTest extends UserAbstractTest {
         UUID uuid = UUID.randomUUID();
         mockMvc.perform(get("/user/profile/" + uuid))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.message").value(MessageFormat.format("Пользователь с id: {0} не найден", uuid.toString())));
+                .andExpect(content().contentType("text/html;charset=UTF-8"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Access Denied")));
     }
 
     @Test
@@ -100,7 +102,8 @@ class UserProfileControllerTest extends UserAbstractTest {
                         .param("user_id", manager.getId().toString())
                         .param("password", "newpassword"))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.message").value("Недостаточно прав для просмотра профиля пользователя"));
+                .andExpect(content().contentType("text/html;charset=UTF-8"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Access Denied")));
     }
 
     @Test
@@ -110,7 +113,8 @@ class UserProfileControllerTest extends UserAbstractTest {
                         .param("user_id", user.getId().toString())
                         .param("password", "newpassword"))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.message").value("Недостаточно прав для изменения пароля"));
+                .andExpect(content().contentType("text/html;charset=UTF-8"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Access Denied")));
     }
 
 

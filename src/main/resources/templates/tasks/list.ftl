@@ -11,8 +11,8 @@
     <@filterFragments.filterForm
     action="/tasks"
     taskFilterDto=taskFilter
-    canAccessOwnerId=canAccessOwnerId
-    userList=userList
+    canAccessOwnerId=canAccessOwnerId!false
+    userList=userList!
     />
 
     <!-- Таблица задач -->
@@ -57,7 +57,7 @@
         totalPages=page.totalPages!1
         pageSize=page.size!10
         baseUrl="/tasks"
-        queryParams="&name=${taskFilter.name!}&completed=${taskFilter.completed!}${canAccessOwnerId?string('&ownerId=${taskFilter.ownerId!}', '')}"
+        queryParams="&name=${taskFilter.name!}&completed=${taskFilter.completed!}${(canAccessOwnerId!false)?string('&ownerId=${taskFilter.ownerId!}', '')}"
         />
     </#if>
 </@base.layout>
